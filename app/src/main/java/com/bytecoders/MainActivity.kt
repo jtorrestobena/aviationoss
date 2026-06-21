@@ -86,10 +86,16 @@ fun FlightRadarApp(
     val shieldRemaining by viewModel.remainingFreeRequests.collectAsStateWithLifecycle()
     val isApiKeyConfigured by viewModel.isApiKeyConfigured.collectAsStateWithLifecycle()
     val cachedFlightsList by viewModel.filteredCachedFlights.collectAsStateWithLifecycle()
+    val allCachedFlights by viewModel.allCachedFlights.collectAsStateWithLifecycle()
 
     var selectedFlightForDetail by remember { mutableStateOf<CachedFlightEntity?>(null) }
     var activeTrackingFlightState by remember { mutableStateOf<CachedFlightEntity?>(null) }
     var showProfileScreen by remember { mutableStateOf(false) }
+
+    // Resolve the reactive flight for detail to ensure bookmark toggles reflect immediately
+    val currentDetailFlight = selectedFlightForDetail?.let { selected ->
+        allCachedFlights.find { it.id == selected.id } ?: selected
+    }
 
     // Resolve the active flight being tracked prominently on the dashboard.
     val activeTrackingFlight = activeTrackingFlightState 
@@ -226,7 +232,7 @@ fun FlightRadarApp(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
-            selectedFlightForDetail?.let { flight ->
+            currentDetailFlight?.let { flight ->
                 LaunchedEffect(flight.id) {
                     viewModel.fetchUpcomingFlight(flight.departureIata ?: "", flight.id)
                     viewModel.fetchDestinationWeather(flight.arrivalIata ?: "")

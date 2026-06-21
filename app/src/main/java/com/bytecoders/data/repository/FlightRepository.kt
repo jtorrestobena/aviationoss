@@ -113,8 +113,16 @@ class FlightRepository(
                 return@flow
             }
 
+            val bookmarkedIds = flightDao.getBookmarkedFlightIds().toSet()
             // Convert to Local Room Entity and Cache them
-            val entities = flightsList.map { dtoToEntity(it) }
+            val entities = flightsList.map { dto ->
+                val entity = dtoToEntity(dto)
+                if (bookmarkedIds.contains(entity.id)) {
+                    entity.copy(isBookmarked = true)
+                } else {
+                    entity
+                }
+            }
             if (entities.isNotEmpty()) {
                 flightDao.insertFlights(entities)
             }
@@ -151,7 +159,15 @@ class FlightRepository(
                 )
                 val flightsList = response.data
                 if (flightsList != null && flightsList.isNotEmpty()) {
-                    val entities = flightsList.map { dtoToEntity(it) }
+                    val bookmarkedIds = flightDao.getBookmarkedFlightIds().toSet()
+                    val entities = flightsList.map { dto ->
+                        val entity = dtoToEntity(dto)
+                        if (bookmarkedIds.contains(entity.id)) {
+                            entity.copy(isBookmarked = true)
+                        } else {
+                            entity
+                        }
+                    }
                     flightDao.insertFlights(entities)
 
                     val otherFlights = entities.filter { it.id != currentFlightId }

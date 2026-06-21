@@ -63,11 +63,34 @@ class FlightViewModel(application: Application) : AndroidViewModel(application) 
 
     // Live search state
     private val _liveSearchState = MutableStateFlow<Resource<List<CachedFlightEntity>>>(Resource.Success(emptyList()))
-    val liveSearchState: StateFlow<Resource<List<CachedFlightEntity>>> = _liveSearchState.asStateFlow()
+    val liveSearchState: StateFlow<Resource<List<CachedFlightEntity>>> = combine(
+        _liveSearchState,
+        repository.bookmarkedFlights
+    ) { state, bookmarked ->
+        if (state is Resource.Success) {
+            val bookmarkedIds = bookmarked.map { it.id }.toSet()
+            val updatedList = state.data.map { flight ->
+                flight.copy(isBookmarked = bookmarkedIds.contains(flight.id))
+            }
+            Resource.Success(updatedList)
+        } else {
+            state
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Resource.Success(emptyList()))
 
     // Upcoming flight for details state flow
     private val _upcomingFlightForDetail = MutableStateFlow<Resource<CachedFlightEntity?>>(Resource.Success(null))
-    val upcomingFlightForDetail: StateFlow<Resource<CachedFlightEntity?>> = _upcomingFlightForDetail.asStateFlow()
+    val upcomingFlightForDetail: StateFlow<Resource<CachedFlightEntity?>> = combine(
+        _upcomingFlightForDetail,
+        repository.bookmarkedFlights
+    ) { state, bookmarked ->
+        if (state is Resource.Success && state.data != null) {
+            val isBookmarked = bookmarked.any { it.id == state.data.id }
+            Resource.Success(state.data.copy(isBookmarked = isBookmarked))
+        } else {
+            state
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Resource.Success(null))
 
     // Destination weather for details state flow
     private val _destinationWeather = MutableStateFlow<Resource<OpenMeteoResponse?>>(Resource.Success(null))

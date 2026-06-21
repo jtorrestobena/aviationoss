@@ -23,6 +23,9 @@ interface FlightDao {
     """)
     fun searchCachedFlights(query: String): Flow<List<CachedFlightEntity>>
 
+    @Query("SELECT id FROM cached_flights WHERE isBookmarked = 1")
+    suspend fun getBookmarkedFlightIds(): List<String>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFlights(flights: List<CachedFlightEntity>)
 
