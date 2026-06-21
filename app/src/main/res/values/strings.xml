@@ -1,3 +1,192 @@
 <resources>
     <string name="app_name">Aviation OSS</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_discover">Discover</string>
+    <string name="nav_watchlist">Watchlist</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Active Tracking -->
+    <string name="active_tracking_title">ACTIVE TRACKING</string>
+    <string name="awaiting_radar_scan">Awaiting Radar Scan</string>
+    <string name="awaiting_radar_scan_sub">Search flight details below or browse cached database entries.</string>
+    <string name="data_source_cached">Data source: cached_server_ams_1</string>
+    <string name="arrival_format">Arrival: %s</string>
+    <string name="status_en_route">EN ROUTE</string>
+
+    <!-- Free Tier Usage -->
+    <string name="free_tier_usage">Free Tier Usage</string>
+    <string name="free_tier_reqs_format">%1$d / 100 reqs</string>
+
+    <!-- Live Search -->
+    <string name="search_placeholder">Search flight number or airline</string>
+    <string name="origin_placeholder">Origin (SFO)</string>
+    <string name="dest_placeholder">Dest (LAX)</string>
+    <string name="btn_query_live">Query Aviation OSS Live</string>
+    <string name="api_key_missing_title">Aviation OSS API Key Not Configured</string>
+    <string name="api_key_missing_body">Tap here to configure your access key in Settings to search real-time Aviation OSS logs.</string>
+    <string name="scan_results_format">SCAN RESULTS (%d)</string>
+    <string name="discover_offline_tip">💡 Tap Discover to view offline cached flights instantly.</string>
+    <string name="no_search_results">No Search Results</string>
+    <string name="no_search_results_sub">Enter flight configurations above to run scanning telemetry.</string>
+    <string name="contacting_radar">Contacting radar servers…</string>
+
+    <!-- Cache Vault -->
+    <string name="cache_vault_title">Offline Cache Vault</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="filter_cache_placeholder">Filter cached database (SFO, DL2419, Delta)</string>
+    <string name="vault_empty">Vault Empty</string>
+    <string name="vault_empty_sub">Searches map matches automatic cache storage.</string>
+    <string name="recent_searches">RECENT SEARCHES</string>
+
+    <!-- Watchlist -->
+    <string name="flight_status_alerts">FLIGHT STATUS ALERTS</string>
+    <string name="auto_poll_on">AUTO POLL ON</string>
+    <string name="auto_poll_off">AUTO POLL OFF</string>
+    <string name="fav_input_placeholder">E.g. LH430, UA101</string>
+    <string name="next_poll_format">Next background state check in %ds</string>
+    <string name="no_fav_numbers">No favorite flight numbers watchlists yet.</string>
+    <string name="monitored_numbers_format">MONITORED NUMBERS (%d)</string>
+    <string name="poll_all">Poll All</string>
+    <string name="bookmarked_cards_format">BOOKMARKED FLIGHT CARDS (%d)</string>
+    <string name="no_bookmarks">No Bookmarks Saved</string>
+    <string name="no_bookmarks_sub">Aviation transponders starred will appear here.</string>
+    <string name="watched_vip_flights">WATCHED VIP FLIGHTS (%d)</string>
+
+    <!-- Favorite Row -->
+    <string name="status_not_found">Not Found</string>
+    <string name="refreshing_data">Refreshing data status…</string>
+    <string name="no_current_schedule">No current schedule on transponder</string>
+    <string name="delayed_format">⚠️ delayed +%dm</string>
+    <string name="on_time">On time</string>
+    <string name="at_time_format">at %s</string>
+    <string name="updated_format">%1$s • Updated %2$s</string>
+    <string name="pending_status">Pending status check…</string>
+
+    <!-- Flight Item -->
+    <string name="carrier_default">Carrier</string>
+    <string name="status_scheduled">SCHEDULED</string>
+
+    <!-- Profile Config -->
+    <string name="profile_config_title">Aviationstack Cockpit</string>
+    <string name="live_api_secured">LIVE API SECURED</string>
+    <string name="offline_vault_active">OFFLINE CACHE VAULT ACTIVE</string>
+    <string name="shield_desc_secured">Avionstack searches are actively proxied through local SQlite caches under credential shield limits. Remaining free query count is %d/100.</string>
+    <string name="shield_desc_offline">No credentials active. Avionstack is running offline. Enjoy interactive flight telemetry and bookmarks securely.</string>
+    <string name="reset_shield">Reset Shield</string>
+    <string name="close">Close</string>
+
+    <!-- Flight Detail -->
+    <string name="unknown_carrier">Unknown carrier</string>
+    <string name="aviation_status_label">Aviation Status:</string>
+    <string name="departure_label">DEPARTURE</string>
+    <string name="arrival_label">ARRIVAL</string>
+    <string name="terminal_label">Terminal</string>
+    <string name="gate_label">Gate</string>
+    <string name="delay_label">Delay</string>
+    <string name="sched_label">Sched</string>
+    <string name="est_label">Est</string>
+    <string name="baggage_label">Baggage</string>
+    <string name="weather_scanner_title">DESTINATION WEATHER SCANNER</string>
+    <string name="querying_weather">Querying weather satellite…</string>
+    <string name="weather_offline">Weather scanning offline</string>
+    <string name="current_conditions">Current Conditions</string>
+    <string name="wind_format">Wind: %s km/h</string>
+    <string name="weather_unavailable">Weather metrics unavailable for this region</string>
+    <string name="telemetry_scanner_title">TELEMETRY SCANNER</string>
+    <string name="equipment_label">Equipment</string>
+    <string name="reg_format">Reg: %s</string>
+    <string name="radar_metrics_label">Radar Metrics</string>
+    <string name="altitude_format">Altitude: %d ft</string>
+    <string name="speed_format">Speed: %d kts</string>
+    <string name="next_departure_format">NEXT DEPARTURE FROM %s</string>
+    <string name="close_telemetry">Close Telemetry Scan</string>
+
+    <!-- Weather States -->
+    <string name="weather_clear">Clear Sky</string>
+    <string name="weather_partly_cloudy">Partly Cloudy</string>
+    <string name="weather_foggy">Foggy</string>
+    <string name="weather_drizzle">Drizzle</string>
+    <string name="weather_rainy">Rainy</string>
+    <string name="weather_snowy">Snowy</string>
+    <string name="weather_showers">Showers</string>
+    <string name="weather_thunderstorm">Thunderstorm</string>
+    <string name="weather_overcast">Overcast</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Application Settings</string>
+    <string name="settings_sub">Manage your API keys, subscription profile, and storage preferences.</string>
+    <string name="api_config_title">Aviation OSS API Config</string>
+    <string name="api_config_desc">To request live flight details beyond the pre-loaded demo cache, enter down your custom Aviation OSS access key.</string>
+    <string name="api_key_label">Aviation OSS Access Key</string>
+    <string name="api_key_placeholder">Enter access_key…</string>
+    <string name="save_key">Save Key</string>
+    <string name="clear_key">Clear Key</string>
+    <string name="api_active_msg">Custom configuration is active and ready.</string>
+    <string name="api_mock_msg">Currently using Dev Mock / Free Preloads.</string>
+    <string name="shield_title">Daily API Request Shield</string>
+    <string name="shield_desc_format">To protect you from free tier rate limitations on Aviation OSS, requests are throttled daily. Remaining: %d/100 calls.</string>
+    <string name="reset_daily_shield">Reset Daily Call Shield</string>
+    <string name="how_to_register_title">How to register standard access key?</string>
+    <string name="how_to_register_steps">1. Visit aviationstack.com in your web browser.\n2. Create a free profile level to receive your personal token.\n3. Copy the token into the configuration input block above and press Save Key.</string>
+
+    <!-- Skeleton -->
+    <string name="sync_radar_telemetry">SYNCHRONIZING RADAR TELEMETRY</string>
+    <string name="interrogating_transponders">Interrogating airspace transponders…</string>
+
+    <!-- Upcoming -->
+    <string name="querying_departures">Querying departures…</string>
+    <string name="fetch_departures_error">Could not fetch departures</string>
+    <string name="no_other_flights">No other flights scheduled today.</string>
+    <string name="to_arrival_format">To: %1$s - %2$s</string>
+
+    <!-- Errors & Toasts -->
+    <string name="flight_cancelled_toast">⚠️ Flight %s is CANCELLED!</string>
+    <string name="flight_delayed_dep_toast">delayed by %d mins on departure</string>
+    <string name="flight_delayed_arr_toast">delayed by %d mins on arrival</string>
+    <string name="flight_delayed_generic">reported as DELAYED</string>
+    <string name="flight_status_update_toast">⏳ Flight %1$s is %2$s!</string>
+    <string name="weather_load_error">Weather load error: %s</string>
+    <string name="api_key_missing_error">API Key is missing. Please set AVIATIONSTACK_API_KEY in the Secrets panel in AI Studio or use the offline Cache Vault tab.</string>
+    <string name="invalid_api_response">Invalid or empty response from Aviationstack.</string>
+    <string name="network_error">A network error occurred. Please check your internet connection or Aviationstack status.</string>
+    <string name="unexpected_error">An unexpected error occurred during search.</string>
+    <string name="upcoming_resolve_error">Failed to resolve upcoming flights: %s</string>
+    <string name="n_a">N/A</string>
+    <string name="not_available_dash">--</string>
+    <string name="not_available_time">--:--</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_takeoff_logo">Takeoff Logo</string>
+    <string name="cd_profile">Credentials Profile</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_clear">Clear</string>
+    <string name="cd_origin">Origin</string>
+    <string name="cd_dest">Destination</string>
+    <string name="cd_error_icon">Error icon</string>
+    <string name="cd_empty_results">Flights results empty</string>
+    <string name="cd_filter">Filter</string>
+    <string name="cd_empty_vault">Empty vault</string>
+    <string name="cd_empty_watchlist">Empty Watchlist</string>
+    <string name="cd_add_favorite">Add Favorite</string>
+    <string name="cd_poll_status">Poll Status</string>
+    <string name="cd_remove_favorite">Remove Favorite</string>
+    <string name="cd_watchlist_trigger">Watchlist trigger</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_lock_shield_logo">Lock Shield logo</string>
+    <string name="cd_watchlist_toggler">Watchlist toggler</string>
+    <string name="cd_weather_icon">Weather Icon</string>
+    <string name="cd_error">Error</string>
+    <string name="cd_radar_sweep">Radar sweep</string>
+
+    <!-- Fallbacks & Formats -->
+    <string name="fallback_new_york">New York</string>
+    <string name="fallback_los_angeles">Los Angeles</string>
+    <string name="temp_celsius_format">%s°C</string>
+    <string name="visibility_toggle">Toggle Key Visibility</string>
+    <string name="status_not_found_upper">NOT FOUND</string>
+    <string name="status_cancelled_upper">CANCELLED</string>
+    <string name="status_active_upper">ACTIVE</string>
+    <string name="status_delayed_upper">DELAYED</string>
 </resources>

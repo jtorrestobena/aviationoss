@@ -14,6 +14,7 @@ import com.bytecoders.data.model.FlightDto
 import com.bytecoders.data.remote.AviationstackApiService
 import com.bytecoders.data.repository.FlightRepository
 import com.bytecoders.data.repository.Resource
+import com.bytecoders.util.UiText
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -218,7 +219,9 @@ class FlightTrackerUnitTest {
         assertTrue(flowEvents[0] is Resource.Loading)
         assertTrue(flowEvents[1] is Resource.Error)
         val errorEvent = flowEvents[1] as Resource.Error
-        assertTrue(errorEvent.message.contains("network error") || errorEvent.message.contains("Simulated"))
+        val uiText = errorEvent.uiText
+        assertTrue(uiText is UiText.StringResource)
+        assertEquals(R.string.network_error, (uiText as UiText.StringResource).resId)
     }
 
     private fun createTestFlight(

@@ -1,6 +1,8 @@
 package com.bytecoders.data.repository
 
 import com.bytecoders.BuildConfig
+import com.bytecoders.util.UiText
+import com.bytecoders.R
 import com.bytecoders.data.local.CachedFlightEntity
 import com.bytecoders.data.local.FlightDao
 import com.bytecoders.data.model.FlightDataDto
@@ -12,7 +14,10 @@ import java.io.IOException
 sealed class Resource<out T> {
     object Loading : Resource<Nothing>()
     data class Success<out T>(val data: T) : Resource<T>()
-    data class Error(val message: String, val throwable: Throwable? = null) : Resource<Nothing>()
+    data class Error(val uiText: UiText, val throwable: Throwable? = null) : Resource<Nothing>() {
+        val message: String 
+            get() = (uiText as? UiText.DynamicString)?.value ?: ""
+    }
 }
 
 class FlightRepository(
@@ -58,7 +63,7 @@ class FlightRepository(
 
         if (resolvedKey.isBlank()) {
             // No API key configured. Emit error but we also suggest searching local/demo data
-            emit(Resource.Error("API Key is missing. Please set AVIATIONSTACK_API_KEY in the Secrets panel in AI Studio or use the offline Cache Vault tab."))
+            emit(Resource.Error(UiText.StringResource(R.string.api_key_missing_error)))
             return@flow
         }
 
@@ -104,7 +109,7 @@ class FlightRepository(
 
             val flightsList = response.data
             if (flightsList == null) {
-                emit(Resource.Error("Invalid or empty response from Aviationstack."))
+                emit(Resource.Error(UiText.StringResource(R.string.invalid_api_response)))
                 return@flow
             }
 
@@ -116,11 +121,11 @@ class FlightRepository(
 
             emit(Resource.Success(entities))
         } catch (e: Exception) {
-            val friendlyMessage = when (e) {
-                is IOException -> "A network error occurred. Please check your internet connection or Aviationstack status."
-                else -> e.localizedMessage ?: "An unexpected error occurred during search."
+            val uiText = when (e) {
+                is IOException -> UiText.StringResource(R.string.network_error)
+                else -> UiText.StringResource(R.string.unexpected_error)
             }
-            emit(Resource.Error(friendlyMessage, e))
+            emit(Resource.Error(uiText, e))
         }
     }
 
@@ -166,7 +171,7 @@ class FlightRepository(
             val upcoming = otherFlights.sortedBy { it.departureScheduled ?: "" }.firstOrNull()
             emit(Resource.Success(upcoming))
         } catch (e: Exception) {
-            emit(Resource.Error("Failed to resolve upcoming flights: ${e.localizedMessage}"))
+            emit(Resource.Error(UiText.StringResource(R.string.upcoming_resolve_error, e.localizedMessage ?: "")))
         }
     }
 

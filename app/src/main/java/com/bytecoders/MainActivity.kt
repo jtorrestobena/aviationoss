@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -109,8 +110,8 @@ fun FlightRadarApp(
                     NavigationBarItem(
                         selected = activeTab == 0,
                         onClick = { viewModel.currentTab.value = 0 },
-                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
+                        icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
+                        label = { Text(stringResource(R.string.nav_home), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -122,8 +123,8 @@ fun FlightRadarApp(
                     NavigationBarItem(
                         selected = activeTab == 1,
                         onClick = { viewModel.currentTab.value = 1 },
-                        icon = { Icon(Icons.Default.Explore, contentDescription = "Discover") },
-                        label = { Text("Discover", fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
+                        icon = { Icon(Icons.Default.Explore, contentDescription = stringResource(R.string.nav_discover)) },
+                        label = { Text(stringResource(R.string.nav_discover), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -135,8 +136,8 @@ fun FlightRadarApp(
                     NavigationBarItem(
                         selected = activeTab == 2,
                         onClick = { viewModel.currentTab.value = 2 },
-                        icon = { Icon(Icons.Default.Star, contentDescription = "Watchlist") },
-                        label = { Text("Watchlist", fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
+                        icon = { Icon(Icons.Default.Star, contentDescription = stringResource(R.string.nav_watchlist)) },
+                        label = { Text(stringResource(R.string.nav_watchlist), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -148,8 +149,8 @@ fun FlightRadarApp(
                     NavigationBarItem(
                         selected = activeTab == 3,
                         onClick = { viewModel.currentTab.value = 3 },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                        label = { Text("Settings", fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
+                        icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings)) },
+                        label = { Text(stringResource(R.string.nav_settings), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -273,13 +274,13 @@ fun SleekHeader(
             ) {
                 Icon(
                     imageVector = Icons.Default.FlightTakeoff,
-                    contentDescription = "Takeoff Logo",
+                    contentDescription = stringResource(R.string.cd_takeoff_logo),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(22.dp)
                 )
             }
             Text(
-                text = "Aviation OSS",
+                text = stringResource(R.string.app_name),
                 fontSize = 21.sp,
                 fontWeight = FontWeight.Medium,
                 letterSpacing = (-0.5).sp,
@@ -293,7 +294,7 @@ fun SleekHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Credentials Profile",
+                contentDescription = stringResource(R.string.cd_profile),
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(28.dp)
             )
@@ -309,7 +310,7 @@ fun ActiveTrackingSection(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(vertical = 6.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -333,13 +334,13 @@ fun ActiveTrackingSection(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Awaiting Radar Scan",
+                    text = stringResource(R.string.awaiting_radar_scan),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = "Search flight details below or browse cached database entries.",
+                    text = stringResource(R.string.awaiting_radar_scan_sub),
                     fontSize = 11.sp,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
@@ -360,7 +361,7 @@ fun ActiveTrackingSection(
                 ) {
                     Column {
                         Text(
-                            text = "ACTIVE TRACKING",
+                            text = stringResource(R.string.active_tracking_title),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
@@ -382,7 +383,7 @@ fun ActiveTrackingSection(
                             .padding(horizontal = 12.dp, vertical = 5.dp)
                     ) {
                         Text(
-                            text = (flight.flightStatus ?: "EN ROUTE").uppercase(),
+                            text = (flight.flightStatus ?: stringResource(R.string.status_en_route)).uppercase(),
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primaryContainer
@@ -399,13 +400,13 @@ fun ActiveTrackingSection(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = flight.departureIata ?: "JFK",
+                            text = flight.departureIata ?: stringResource(R.string.n_a),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = flight.departureAirport?.split(",")?.firstOrNull()?.split(" ")?.firstOrNull() ?: "New York",
+                            text = flight.departureAirport?.split(",")?.firstOrNull()?.split(" ")?.firstOrNull() ?: stringResource(R.string.fallback_new_york),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
@@ -453,13 +454,13 @@ fun ActiveTrackingSection(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = flight.arrivalIata ?: "LAX",
+                            text = flight.arrivalIata ?: stringResource(R.string.n_a),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = flight.arrivalAirport?.split(",")?.firstOrNull()?.split(" ")?.firstOrNull() ?: "Los Angeles",
+                            text = flight.arrivalAirport?.split(",")?.firstOrNull()?.split(" ")?.firstOrNull() ?: stringResource(R.string.fallback_los_angeles),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
@@ -483,13 +484,13 @@ fun ActiveTrackingSection(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Data source: cached_server_ams_1",
+                        text = stringResource(R.string.data_source_cached),
                         fontSize = 11.sp,
                         fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                     )
                     Text(
-                        text = "Arrival: ${formatTime(flight.arrivalScheduled)}",
+                        text = stringResource(R.string.arrival_format, formatTime(flight.arrivalScheduled)),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -509,7 +510,7 @@ fun FreeTierUsageSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(vertical = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -517,13 +518,13 @@ fun FreeTierUsageSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Free Tier Usage",
+                text = stringResource(R.string.free_tier_usage),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.secondary
             )
             Text(
-                text = "$shieldCount / 100 reqs",
+                text = stringResource(R.string.free_tier_reqs_format, shieldCount),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -587,12 +588,12 @@ fun LiveSearchScreen(
                     TextField(
                         value = flightNo,
                         onValueChange = { viewModel.searchFlightNumber.value = it },
-                        placeholder = { Text("Search flight number or airline", fontSize = 14.sp) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.secondary) },
+                        placeholder = { Text(stringResource(R.string.search_placeholder), fontSize = 14.sp) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.cd_search), tint = MaterialTheme.colorScheme.secondary) },
                         trailingIcon = {
                             if (flightNo.isNotEmpty()) {
                                 IconButton(onClick = { viewModel.searchFlightNumber.value = "" }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "Clear", tint = MaterialTheme.colorScheme.secondary)
+                                    Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.cd_clear), tint = MaterialTheme.colorScheme.secondary)
                                 }
                             }
                         },
@@ -629,8 +630,8 @@ fun LiveSearchScreen(
                         TextField(
                             value = departure,
                             onValueChange = { viewModel.searchDepartureIata.value = it },
-                            placeholder = { Text("Origin (SFO)", fontSize = 13.sp) },
-                            leadingIcon = { Icon(Icons.Default.FlightTakeoff, contentDescription = "Origin", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary) },
+                            placeholder = { Text(stringResource(R.string.origin_placeholder), fontSize = 13.sp) },
+                            leadingIcon = { Icon(Icons.Default.FlightTakeoff, contentDescription = stringResource(R.string.cd_origin), modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary) },
                             singleLine = true,
                             shape = RoundedCornerShape(20.dp),
                             colors = TextFieldDefaults.colors(
@@ -649,8 +650,8 @@ fun LiveSearchScreen(
                         TextField(
                             value = arrival,
                             onValueChange = { viewModel.searchArrivalIata.value = it },
-                            placeholder = { Text("Dest (LAX)", fontSize = 13.sp) },
-                            leadingIcon = { Icon(Icons.Default.FlightLand, contentDescription = "Dest", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary) },
+                            placeholder = { Text(stringResource(R.string.dest_placeholder), fontSize = 13.sp) },
+                            leadingIcon = { Icon(Icons.Default.FlightLand, contentDescription = stringResource(R.string.cd_dest), modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary) },
                             singleLine = true,
                             shape = RoundedCornerShape(20.dp),
                             colors = TextFieldDefaults.colors(
@@ -689,7 +690,7 @@ fun LiveSearchScreen(
                         ) {
                             Icon(Icons.Default.Radar, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Query Aviation OSS Live", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.btn_query_live), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -720,13 +721,13 @@ fun LiveSearchScreen(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Aviation OSS API Key Not Configured",
+                                text = stringResource(R.string.api_key_missing_title),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
                             Text(
-                                text = "Tap here to configure your access key in Settings to search real-time Aviation OSS logs.",
+                                text = stringResource(R.string.api_key_missing_body),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
                             )
@@ -742,112 +743,123 @@ fun LiveSearchScreen(
             }
         }
 
-        // Active Tracking prominently featured dashboard display
-        ActiveTrackingSection(flight = activeTrackingFlight)
-
-        // Progress statistics display
-        FreeTierUsageSection(
-            shieldCount = shieldRemaining,
-            onResetShield = { viewModel.resetRequestShield() }
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Live Search query results list
-        Box(
+        // Scrollable area for dashboard and results
+        LazyColumn(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
+            // Active Tracking prominently featured dashboard display
+            item {
+                ActiveTrackingSection(
+                    flight = activeTrackingFlight,
+                    modifier = Modifier.padding(horizontal = 0.dp) // Reset padding since LazyColumn handles it
+                )
+            }
+
+            // Progress statistics display
+            item {
+                FreeTierUsageSection(
+                    shieldCount = shieldRemaining,
+                    onResetShield = { viewModel.resetRequestShield() },
+                    modifier = Modifier.padding(horizontal = 0.dp)
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(4.dp)) }
+
             when (val state = searchState) {
                 is Resource.Loading -> {
-                    FlightSkeletonList()
-                }
-                is Resource.Error -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudOff,
-                            contentDescription = "Error icon",
-                            tint = ColorCancelled,
-                            modifier = Modifier.size(40.dp)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = state.message,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "💡 Tap Discover to view offline cached flights instantly.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
-                        )
+                    item {
+                        FlightSkeletonList()
                     }
                 }
-                is Resource.Success -> {
-                    val list = state.data
-                    if (list.isEmpty()) {
+                is Resource.Error -> {
+                    item {
                         Column(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .fillParentMaxHeight(0.7f)
+                                .fillMaxWidth()
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                imageVector = Icons.Default.AirplaneTicket,
-                                contentDescription = "Flights results empty",
-                                tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
-                                modifier = Modifier.size(48.dp)
+                                imageVector = Icons.Default.CloudOff,
+                                contentDescription = stringResource(R.string.cd_error_icon),
+                                tint = ColorCancelled,
+                                modifier = Modifier.size(40.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "No Search Results",
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Text(
-                                text = "Enter flight configurations above to run scanning telemetry.",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                                text = state.uiText.asString(),
+                                color = MaterialTheme.colorScheme.onBackground,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(top = 2.dp)
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = stringResource(R.string.discover_offline_tip),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.Center
                             )
                         }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(bottom = 16.dp)
-                        ) {
-                            item {
+                    }
+                }
+                is Resource.Success -> {
+                    val list = state.data
+                    if (list.isEmpty()) {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillParentMaxHeight(0.7f)
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AirplaneTicket,
+                                    contentDescription = stringResource(R.string.cd_empty_results),
+                                    tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "SCAN RESULTS (${list.size})",
-                                    fontSize = 11.sp,
+                                    text = stringResource(R.string.no_search_results),
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                                Text(
+                                    text = stringResource(R.string.no_search_results_sub),
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(top = 2.dp)
                                 )
                             }
-                            items(list) { flight ->
-                                FlightCardItem(
-                                    flight = flight,
-                                    onClick = { onFlightClick(flight) },
-                                    onBookmarkToggle = { viewModel.toggleBookmark(flight) },
-                                    onSelectForTracking = { onSelectForTracking(flight) },
-                                    isActiveTracking = activeTrackingFlight?.flightIata == flight.flightIata
-                                )
-                            }
+                        }
+                    } else {
+                        item {
+                            Text(
+                                text = stringResource(R.string.scan_results_format, list.size),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)
+                            )
+                        }
+                        items(list) { flight ->
+                            FlightCardItem(
+                                flight = flight,
+                                onClick = { onFlightClick(flight) },
+                                onBookmarkToggle = { viewModel.toggleBookmark(flight) },
+                                onSelectForTracking = { onSelectForTracking(flight) },
+                                isActiveTracking = activeTrackingFlight?.flightIata == flight.flightIata
+                            )
                         }
                     }
                 }
@@ -897,7 +909,7 @@ fun CacheVaultScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Offline Cache Vault",
+                                text = stringResource(R.string.cache_vault_title),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -911,15 +923,15 @@ fun CacheVaultScreen(
                         ) {
                             Icon(Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Clear Cache", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.clear_cache), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
                     TextField(
                         value = query,
                         onValueChange = { viewModel.cacheSearchQuery.value = it },
-                        placeholder = { Text("Filter cached database (SFO, DL2419, Delta)", fontSize = 13.sp) },
-                        leadingIcon = { Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = MaterialTheme.colorScheme.secondary) },
+                        placeholder = { Text(stringResource(R.string.filter_cache_placeholder), fontSize = 13.sp) },
+                        leadingIcon = { Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.cd_filter), tint = MaterialTheme.colorScheme.secondary) },
                         singleLine = true,
                         shape = RoundedCornerShape(20.dp),
                         colors = TextFieldDefaults.colors(
@@ -955,18 +967,18 @@ fun CacheVaultScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Inbox,
-                        contentDescription = "Empty vault",
+                        contentDescription = stringResource(R.string.cd_empty_vault),
                         tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Vault Empty",
+                        text = stringResource(R.string.vault_empty),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = "Searches map matches automatic cache storage.",
+                        text = stringResource(R.string.vault_empty_sub),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center
@@ -980,7 +992,7 @@ fun CacheVaultScreen(
                 ) {
                     item {
                         Text(
-                            text = "RECENT SEARCHES",
+                            text = stringResource(R.string.recent_searches),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary,
@@ -1058,7 +1070,7 @@ fun WatchlistScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "FLIGHT STATUS ALERTS",
+                                text = stringResource(R.string.flight_status_alerts),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1087,7 +1099,7 @@ fun WatchlistScreen(
                                         .background(if (isPollingActive) ColorActive else MaterialTheme.colorScheme.secondary)
                                 )
                                 Text(
-                                    text = if (isPollingActive) "AUTO POLL ON" else "AUTO POLL OFF",
+                                    text = if (isPollingActive) stringResource(R.string.auto_poll_on) else stringResource(R.string.auto_poll_off),
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isPollingActive) ColorActive else MaterialTheme.colorScheme.secondary
@@ -1107,7 +1119,7 @@ fun WatchlistScreen(
                         OutlinedTextField(
                             value = newFlightInput,
                             onValueChange = { newFlightInput = it },
-                            placeholder = { Text("E.g. LH430, UA101", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                            placeholder = { Text(stringResource(R.string.fav_input_placeholder), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                             singleLine = true,
                             textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
                             modifier = Modifier
@@ -1139,7 +1151,7 @@ fun WatchlistScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Add Favorite",
+                                contentDescription = stringResource(R.string.cd_add_favorite),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -1151,7 +1163,7 @@ fun WatchlistScreen(
                         val diffMs = (nextPollTime!! - currentMs).coerceAtLeast(0)
                         val diffSecs = (diffMs / 1000).toInt()
                         Text(
-                            text = "Next background state check in ${diffSecs}s",
+                            text = stringResource(R.string.next_poll_format, diffSecs),
                             fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
                             modifier = Modifier.padding(top = 4.dp, start = 4.dp)
@@ -1169,7 +1181,7 @@ fun WatchlistScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No favorite flight numbers watchlists yet.",
+                                text = stringResource(R.string.no_fav_numbers),
                                 fontSize = 11.sp,
                                 fontStyle = FontStyle.Italic,
                                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
@@ -1183,14 +1195,14 @@ fun WatchlistScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "MONITORED NUMBERS (${favoriteNumbers.size})",
+                                text = stringResource(R.string.monitored_numbers_format, favoriteNumbers.size),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.secondary
                             )
 
                             Text(
-                                text = "Poll All",
+                                text = stringResource(R.string.poll_all),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
@@ -1218,7 +1230,7 @@ fun WatchlistScreen(
         // Section B: VIP Bookmark List Header
         item {
             Text(
-                text = "BOOKMARKED FLIGHT CARDS (${bookmarkedList.size})",
+                text = stringResource(R.string.watched_vip_flights, bookmarkedList.size),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary,
@@ -1243,19 +1255,19 @@ fun WatchlistScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.StarOutline,
-                            contentDescription = "Empty Watchlist",
+                            contentDescription = stringResource(R.string.cd_empty_watchlist),
                             tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
                             modifier = Modifier.size(44.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "No Bookmarks Saved",
+                            text = stringResource(R.string.no_bookmarks),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary
                         )
                         Text(
-                            text = "Aviation transponders starred will appear here.",
+                            text = stringResource(R.string.no_bookmarks_sub),
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center,
@@ -1316,10 +1328,10 @@ fun FavoriteFlightNumberRow(
                     if (statusInfo?.status != null) {
                         val status = statusInfo.status
                         val (color, label) = when {
-                            status == "not_found" -> Pair(MaterialTheme.colorScheme.secondary, "Not Found")
-                            status.lowercase() == "cancelled" -> Pair(ColorCancelled, "CANCELLED")
-                            status.lowercase() == "active" -> Pair(ColorActive, "ACTIVE")
-                            status.lowercase() == "delayed" -> Pair(ColorCancelled, "DELAYED")
+                            status == "not_found" -> Pair(MaterialTheme.colorScheme.secondary, stringResource(R.string.status_not_found))
+                            status.lowercase() == "cancelled" -> Pair(ColorCancelled, stringResource(R.string.status_cancelled_upper))
+                            status.lowercase() == "active" -> Pair(ColorActive, stringResource(R.string.status_active_upper))
+                            status.lowercase() == "delayed" -> Pair(ColorCancelled, stringResource(R.string.status_delayed_upper))
                             else -> Pair(ColorScheduled, status.uppercase())
                         }
 
@@ -1343,18 +1355,18 @@ fun FavoriteFlightNumberRow(
 
                 // Detail updates text
                 val detailText = when {
-                    statusInfo?.isPolling == true -> "Refreshing data status..."
-                    statusInfo?.status == "not_found" -> "No current schedule on transponder"
+                    statusInfo?.isPolling == true -> stringResource(R.string.refreshing_data)
+                    statusInfo?.status == "not_found" -> stringResource(R.string.no_current_schedule)
                     statusInfo?.status != null -> {
                         val totalDelay = (statusInfo.departureDelay ?: 0) + (statusInfo.arrivalDelay ?: 0)
-                        val delayStr = if (totalDelay > 0) "⚠️ delayed +${totalDelay}m" else "On time"
+                        val delayStr = if (totalDelay > 0) stringResource(R.string.delayed_format, totalDelay) else stringResource(R.string.on_time)
                         val updateTime = if (statusInfo.lastChecked != null) {
                             val timeStr = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(statusInfo.lastChecked))
-                            "at $timeStr"
+                            stringResource(R.string.at_time_format, timeStr)
                         } else ""
-                        "$delayStr • Updated $updateTime"
+                        stringResource(R.string.updated_format, delayStr, updateTime)
                     }
-                    else -> "Pending status check..."
+                    else -> stringResource(R.string.pending_status)
                 }
 
                 Text(
@@ -1382,7 +1394,7 @@ fun FavoriteFlightNumberRow(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Poll Status",
+                            contentDescription = stringResource(R.string.cd_poll_status),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
@@ -1395,7 +1407,7 @@ fun FavoriteFlightNumberRow(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Remove Favorite",
+                        contentDescription = stringResource(R.string.cd_remove_favorite),
                         tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                         modifier = Modifier.size(16.dp)
                     )
@@ -1469,7 +1481,7 @@ fun FlightCardItem(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "${flight.departureIata} → ${flight.arrivalIata} • ${flight.airlineName ?: "Carrier"}",
+                text = "${flight.departureIata} → ${flight.arrivalIata} • ${flight.airlineName ?: stringResource(R.string.carrier_default)}",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -1487,7 +1499,7 @@ fun FlightCardItem(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = (flight.flightStatus ?: "SCHEDULED").uppercase(),
+                    text = (flight.flightStatus ?: stringResource(R.string.status_scheduled)).uppercase(),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     color = statusColor
@@ -1500,7 +1512,7 @@ fun FlightCardItem(
             ) {
                 Icon(
                     imageVector = if (flight.isBookmarked) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = "Watchlist trigger",
+                    contentDescription = stringResource(R.string.cd_watchlist_trigger),
                     tint = if (flight.isBookmarked) RadarTertiary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
                     modifier = Modifier.size(20.dp)
                 )
@@ -1540,7 +1552,7 @@ fun ProfileConfigScreen(
                 horizontalArrangement = Arrangement.Start
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                 }
             }
 
@@ -1555,7 +1567,7 @@ fun ProfileConfigScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.AdminPanelSettings,
-                    contentDescription = "Lock Shield logo",
+                    contentDescription = stringResource(R.string.cd_lock_shield_logo),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(36.dp)
                 )
@@ -1564,7 +1576,7 @@ fun ProfileConfigScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Aviationstack Cockpit",
+                text = stringResource(R.string.profile_config_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -1582,7 +1594,7 @@ fun ProfileConfigScreen(
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = if (apiKeyConfigured) "LIVE API SECURED" else "OFFLINE CACHE VAULT ACTIVE",
+                    text = if (apiKeyConfigured) stringResource(R.string.live_api_secured) else stringResource(R.string.offline_vault_active),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (apiKeyConfigured) ColorActive else ColorWarning
@@ -1593,9 +1605,9 @@ fun ProfileConfigScreen(
 
             Text(
                 text = if (apiKeyConfigured) {
-                    "Avionstack searches are actively proxied through local SQlite caches under credential shield limits. Remaining free query count is $shieldCount/100."
+                    stringResource(R.string.shield_desc_secured, shieldCount)
                 } else {
-                    "No credentials active. Avionstack is running offline. Enjoy interactive flight telemetry and bookmarks securely."
+                    stringResource(R.string.shield_desc_offline)
                 },
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center,
@@ -1617,7 +1629,7 @@ fun ProfileConfigScreen(
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Reset Shield")
+                    Text(stringResource(R.string.reset_shield))
                 }
 
                 Button(
@@ -1625,7 +1637,7 @@ fun ProfileConfigScreen(
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             }
         }
@@ -1666,7 +1678,7 @@ fun FlightDetailScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.size(24.dp))
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back), modifier = Modifier.size(24.dp))
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -1679,7 +1691,7 @@ fun FlightDetailScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = flight.airlineName ?: "Unknown carrier",
+                        text = flight.airlineName ?: stringResource(R.string.unknown_carrier),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -1688,7 +1700,7 @@ fun FlightDetailScreen(
                 IconButton(onClick = onToggleBookmark) {
                     Icon(
                         imageVector = if (flight.isBookmarked) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = "Watchlist toggler",
+                        contentDescription = stringResource(R.string.cd_watchlist_toggler),
                         tint = if (flight.isBookmarked) RadarTertiary else MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
                         modifier = Modifier.size(24.dp)
                     )
@@ -1708,13 +1720,13 @@ fun FlightDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Aviation Status:",
+                        text = stringResource(R.string.aviation_status_label),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = (flight.flightStatus ?: "SCHEDULED").uppercase(),
+                        text = (flight.flightStatus ?: stringResource(R.string.status_scheduled)).uppercase(),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = statusColor
@@ -1726,33 +1738,33 @@ fun FlightDetailScreen(
                 // Departure & Arrival Details columns
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("DEPARTURE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.departure_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(flight.departureIata ?: "N/A", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                        Text(flight.departureAirport ?: "N/A", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(flight.departureIata ?: stringResource(R.string.n_a), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(flight.departureAirport ?: stringResource(R.string.n_a), fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         
                         Spacer(modifier = Modifier.height(8.dp))
-                        DetailPairRow("Terminal", flight.departureTerminal ?: "--")
-                        DetailPairRow("Gate", flight.departureGate ?: "--")
-                        DetailPairRow("Delay", if (flight.departureDelay == null) "On Time" else "${flight.departureDelay}m")
-                        DetailPairRow("Sched", formatTimeDetailed(flight.departureScheduled))
-                        DetailPairRow("Est", formatTimeDetailed(flight.departureEstimated))
+                        DetailPairRow(stringResource(R.string.terminal_label), flight.departureTerminal ?: stringResource(R.string.not_available_dash))
+                        DetailPairRow(stringResource(R.string.gate_label), flight.departureGate ?: stringResource(R.string.not_available_dash))
+                        DetailPairRow(stringResource(R.string.delay_label), if (flight.departureDelay == null) stringResource(R.string.on_time) else "${flight.departureDelay}m")
+                        DetailPairRow(stringResource(R.string.sched_label), formatTimeDetailed(flight.departureScheduled))
+                        DetailPairRow(stringResource(R.string.est_label), formatTimeDetailed(flight.departureEstimated))
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("ARRIVAL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.arrival_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(flight.arrivalIata ?: "N/A", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                        Text(flight.arrivalAirport ?: "N/A", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(flight.arrivalIata ?: stringResource(R.string.n_a), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(flight.arrivalAirport ?: stringResource(R.string.n_a), fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         
                         Spacer(modifier = Modifier.height(8.dp))
-                        DetailPairRow("Terminal", flight.arrivalTerminal ?: "--")
-                        DetailPairRow("Gate", flight.arrivalGate ?: "--")
-                        DetailPairRow("Baggage", flight.arrivalBaggage ?: "--")
-                        DetailPairRow("Sched", formatTimeDetailed(flight.arrivalScheduled))
-                        DetailPairRow("Est", formatTimeDetailed(flight.arrivalEstimated))
+                        DetailPairRow(stringResource(R.string.terminal_label), flight.arrivalTerminal ?: stringResource(R.string.not_available_dash))
+                        DetailPairRow(stringResource(R.string.gate_label), flight.arrivalGate ?: stringResource(R.string.not_available_dash))
+                        DetailPairRow(stringResource(R.string.baggage_label), flight.arrivalBaggage ?: stringResource(R.string.not_available_dash))
+                        DetailPairRow(stringResource(R.string.sched_label), formatTimeDetailed(flight.arrivalScheduled))
+                        DetailPairRow(stringResource(R.string.est_label), formatTimeDetailed(flight.arrivalEstimated))
                     }
                 }
 
@@ -1761,25 +1773,29 @@ fun FlightDetailScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "DESTINATION WEATHER SCANNER",
+                    text = stringResource(R.string.weather_scanner_title),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val getWeatherInfo = { code: Int? ->
-                    when (code) {
-                        0 -> Pair("Clear Sky", Icons.Default.WbSunny)
-                        1, 2, 3 -> Pair("Partly Cloudy", Icons.Default.Cloud)
-                        45, 48 -> Pair("Foggy", Icons.Default.Cloud)
-                        51, 53, 55 -> Pair("Drizzle", Icons.Default.Cloud)
-                        61, 63, 65 -> Pair("Rainy", Icons.Default.Cloud)
-                        71, 73, 75 -> Pair("Snowy", Icons.Default.Cloud)
-                        80, 81, 82 -> Pair("Showers", Icons.Default.Cloud)
-                        95, 96, 99 -> Pair("Thunderstorm", Icons.Default.Warning)
-                        else -> Pair("Overcast", Icons.Default.Cloud)
+                val weatherInfo = when (val res = weatherState) {
+                    is Resource.Success -> {
+                        val code = res.data?.currentWeather?.weathercode
+                        when (code) {
+                            0 -> Pair(stringResource(R.string.weather_clear), Icons.Default.WbSunny)
+                            1, 2, 3 -> Pair(stringResource(R.string.weather_partly_cloudy), Icons.Default.Cloud)
+                            45, 48 -> Pair(stringResource(R.string.weather_foggy), Icons.Default.Cloud)
+                            51, 53, 55 -> Pair(stringResource(R.string.weather_drizzle), Icons.Default.Cloud)
+                            61, 63, 65 -> Pair(stringResource(R.string.weather_rainy), Icons.Default.Cloud)
+                            71, 73, 75 -> Pair(stringResource(R.string.weather_snowy), Icons.Default.Cloud)
+                            80, 81, 82 -> Pair(stringResource(R.string.weather_showers), Icons.Default.Cloud)
+                            95, 96, 99 -> Pair(stringResource(R.string.weather_thunderstorm), Icons.Default.Warning)
+                            else -> Pair(stringResource(R.string.weather_overcast), Icons.Default.Cloud)
+                        }
                     }
+                    else -> Pair(stringResource(R.string.weather_overcast), Icons.Default.Cloud)
                 }
 
                 when (weatherState) {
@@ -1797,7 +1813,7 @@ fun FlightDetailScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Querying weather satellite...", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                            Text(stringResource(R.string.querying_weather), fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                     is Resource.Error -> {
@@ -1809,13 +1825,13 @@ fun FlightDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Warning,
-                                contentDescription = "Error",
+                                contentDescription = stringResource(R.string.cd_error),
                                 tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = weatherState.message ?: "Weather scanning offline",
+                                text = weatherState.uiText.asString(),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -1825,7 +1841,7 @@ fun FlightDetailScreen(
                         val response = weatherState.data
                         if (response?.currentWeather != null) {
                             val cur = response.currentWeather
-                            val (desc, icon) = getWeatherInfo(cur.weathercode)
+                            val (desc, icon) = weatherInfo
                             
                             Row(
                                 modifier = Modifier
@@ -1839,7 +1855,7 @@ fun FlightDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = icon,
-                                        contentDescription = "Weather Icon",
+                                        contentDescription = stringResource(R.string.cd_weather_icon),
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(28.dp)
                                     )
@@ -1852,7 +1868,7 @@ fun FlightDetailScreen(
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "Current Conditions",
+                                            text = stringResource(R.string.current_conditions),
                                             fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.secondary
                                         )
@@ -1862,13 +1878,13 @@ fun FlightDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text(
-                                            text = "${cur.temperature ?: "--"}°C",
+                                            text = stringResource(R.string.temp_celsius_format, cur.temperature ?: stringResource(R.string.not_available_dash)),
                                             fontWeight = FontWeight.ExtraBold,
                                             fontSize = 20.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "Wind: ${cur.windspeed ?: "--"} km/h",
+                                            text = stringResource(R.string.wind_format, cur.windspeed ?: stringResource(R.string.not_available_dash)),
                                             fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.secondary
                                         )
@@ -1877,7 +1893,7 @@ fun FlightDetailScreen(
                             }
                         } else {
                             Text(
-                                text = "Weather metrics unavailable for this region",
+                                text = stringResource(R.string.weather_unavailable),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -1899,28 +1915,28 @@ fun FlightDetailScreen(
                 // Aircraft systems telemetry info
                 if (flight.aircraftIata != null || flight.liveAltitude != null) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
-                    Text("TELEMETRY SCANNER", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.telemetry_scanner_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(6.dp))
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         flight.aircraftIata?.let { model ->
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Equipment", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                                Text(stringResource(R.string.equipment_label), fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
                                 Text(model, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                 flight.aircraftRegistration?.let { reg ->
-                                    Text("Reg: $reg", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                                    Text(stringResource(R.string.reg_format, reg), fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
                                 }
                             }
                         }
 
                         if (flight.liveAltitude != null || flight.liveSpeed != null) {
                             Column(modifier = Modifier.weight(1.2f)) {
-                                Text("Radar Metrics", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                                Text(stringResource(R.string.radar_metrics_label), fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
                                 flight.liveAltitude?.let { alt ->
-                                    Text("Altitude: ${alt.toInt()} ft", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(stringResource(R.string.altitude_format, alt.toInt()), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 flight.liveSpeed?.let { speed ->
-                                    Text("Speed: ${speed.toInt()} kts", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(stringResource(R.string.speed_format, speed.toInt()), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                         }
@@ -1929,7 +1945,7 @@ fun FlightDetailScreen(
 
                 // Upcoming flight section
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
-                Text("NEXT DEPARTURE FROM ${flight.departureIata ?: ""}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.next_departure_format, flight.departureIata ?: ""), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(6.dp))
                 UpcomingFlightSummaryCard(
                     upcomingState = upcomingState,
@@ -1943,7 +1959,7 @@ fun FlightDetailScreen(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text("Close Telemetry Scan", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.close_telemetry), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -2029,13 +2045,13 @@ fun SettingsScreen(
     ) {
         item {
             Text(
-                text = "Application Settings",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                text = "Manage your API keys, subscription profile, and storage preferences.",
+                text = stringResource(R.string.settings_sub),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 4.dp)
@@ -2065,14 +2081,14 @@ fun SettingsScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Aviation OSS API Config",
+                            text = stringResource(R.string.api_config_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
                     Text(
-                        text = "To request live flight details beyond the pre-loaded demo cache, enter down your custom Aviation OSS access key.",
+                        text = stringResource(R.string.api_config_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2082,15 +2098,15 @@ fun SettingsScreen(
                         value = apiKeyText,
                         onValueChange = { apiKeyText = it },
                         modifier = Modifier.fillMaxWidth().testTag("api_key_input_field"),
-                        label = { Text("Aviation OSS Access Key") },
-                        placeholder = { Text("Enter access_key...") },
+                        label = { Text(stringResource(R.string.api_key_label)) },
+                        placeholder = { Text(stringResource(R.string.api_key_placeholder)) },
                         singleLine = true,
                         visualTransformation = if (keyVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { keyVisible = !keyVisible }) {
                                 Icon(
                                     imageVector = if (keyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = "Toggle Key Visibility"
+                                    contentDescription = stringResource(R.string.visibility_toggle)
                                 )
                             }
                         },
@@ -2112,7 +2128,7 @@ fun SettingsScreen(
                             modifier = Modifier.weight(1f).testTag("save_api_key_btn"),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Save Key")
+                            Text(stringResource(R.string.save_key))
                         }
                         
                         OutlinedButton(
@@ -2125,9 +2141,9 @@ fun SettingsScreen(
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
                         ) {
-                            Text("Clear Key")
+                            Text(stringResource(R.string.clear_key))
                         }
                     }
 
@@ -2148,7 +2164,7 @@ fun SettingsScreen(
                                 tint = if (isApiKeyConfigured) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = if (isApiKeyConfigured) "Custom configuration is active and ready." else "Currently using Dev Mock / Free Preloads.",
+                                text = if (isApiKeyConfigured) stringResource(R.string.api_active_msg) else stringResource(R.string.api_mock_msg),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (isApiKeyConfigured) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
@@ -2182,14 +2198,14 @@ fun SettingsScreen(
                             tint = RadarTertiary
                         )
                         Text(
-                            text = "Daily API Request Shield",
+                            text = stringResource(R.string.shield_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
                     Text(
-                        text = "To protect you from free tier rate limitations on Aviation OSS, requests are throttled daily. Remaining: $shieldRemaining/100 calls.",
+                        text = stringResource(R.string.shield_desc_format, shieldRemaining),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2205,7 +2221,7 @@ fun SettingsScreen(
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Reset Daily Call Shield", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.reset_daily_shield), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -2225,13 +2241,13 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "How to register standard access key?",
+                        text = stringResource(R.string.how_to_register_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "1. Visit aviationstack.com in your web browser.\n2. Create a free profile level to receive your personal token.\n3. Copy the token into the configuration input block above and press Save Key.",
+                        text = stringResource(R.string.how_to_register_steps),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -2370,7 +2386,7 @@ fun FlightSkeletonList() {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .testTag("flight_skeleton_loading"),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -2397,7 +2413,7 @@ fun FlightSkeletonList() {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Radar,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.cd_radar_sweep),
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = pulseAlpha),
                         modifier = Modifier
                             .size(22.dp)
@@ -2407,7 +2423,7 @@ fun FlightSkeletonList() {
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "SYNCHRONIZING RADAR TELEMETRY",
+                        text = stringResource(R.string.sync_radar_telemetry),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -2415,7 +2431,7 @@ fun FlightSkeletonList() {
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Interrogating airspace transponders...",
+                        text = stringResource(R.string.interrogating_transponders),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
@@ -2515,8 +2531,8 @@ fun FlightRouteMap(
     flight: CachedFlightEntity,
     modifier: Modifier = Modifier
 ) {
-    val depIata = flight.departureIata ?: "DEP"
-    val arrIata = flight.arrivalIata ?: "ARR"
+    val depIata = flight.departureIata ?: stringResource(R.string.n_a)
+    val arrIata = flight.arrivalIata ?: stringResource(R.string.n_a)
     val depCoords = getAirportCoords(depIata)
     val arrCoords = getAirportCoords(arrIata)
 
@@ -2674,7 +2690,7 @@ fun UpcomingFlightSummaryCard(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Querying departures...",
+                            text = stringResource(R.string.querying_departures),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -2683,7 +2699,7 @@ fun UpcomingFlightSummaryCard(
             }
             is Resource.Error -> {
                 Text(
-                    text = "Could not fetch departures",
+                    text = stringResource(R.string.fetch_departures_error),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(14.dp)
@@ -2699,7 +2715,7 @@ fun UpcomingFlightSummaryCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No other flights scheduled today.",
+                            text = stringResource(R.string.no_other_flights),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -2732,7 +2748,7 @@ fun UpcomingFlightSummaryCard(
                             }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "To: ${flight.arrivalIata} - ${flight.arrivalAirport}",
+                                text = stringResource(R.string.to_arrival_format, flight.arrivalIata ?: stringResource(R.string.n_a), flight.arrivalAirport ?: stringResource(R.string.n_a)),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.secondary,
                                 maxLines = 1,
@@ -2762,7 +2778,7 @@ fun UpcomingFlightSummaryCard(
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = (flight.flightStatus ?: "unknown").uppercase(),
+                                    text = (flight.flightStatus ?: stringResource(R.string.status_scheduled)).uppercase(),
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = statusColor

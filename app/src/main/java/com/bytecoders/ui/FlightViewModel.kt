@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.bytecoders.BuildConfig
+import com.bytecoders.R
 import com.bytecoders.getAirportCoords
 import com.bytecoders.data.local.AppDatabase
 import com.bytecoders.data.local.CachedFlightEntity
@@ -13,6 +14,7 @@ import com.bytecoders.data.remote.OpenMeteoApiService
 import com.bytecoders.data.model.OpenMeteoResponse
 import com.bytecoders.data.repository.FlightRepository
 import com.bytecoders.data.repository.Resource
+import com.bytecoders.util.UiText
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
@@ -226,7 +228,8 @@ class FlightViewModel(application: Application) : AndroidViewModel(application) 
                 val response = weatherApiService.getCurrentWeather(latitude = coords.first, longitude = coords.second)
                 _destinationWeather.value = Resource.Success(response)
             } catch (e: Exception) {
-                _destinationWeather.value = Resource.Error("Weather load error: ${e.localizedMessage ?: e.message}")
+                val errorText = UiText.StringResource(R.string.weather_load_error, e.localizedMessage ?: e.message ?: "")
+                _destinationWeather.value = Resource.Error(errorText, e)
             }
         }
     }
@@ -336,14 +339,17 @@ class FlightViewModel(application: Application) : AndroidViewModel(application) 
 
                     if (currentSignature != lastSignature) {
                         if (isCancelled) {
-                            toastChannel.send("⚠️ Flight $flightNo is CANCELLED!")
+                            val msg = getApplication<Application>().getString(R.string.flight_cancelled_toast, flightNo)
+                            toastChannel.send(msg)
                         } else if (isDelayedStatus || isDelayedByTime) {
+                            val context = getApplication<Application>()
                             val reason = when {
-                                activeDepDelay > 0 -> "delayed by $activeDepDelay mins on departure"
-                                activeArrDelay > 0 -> "delayed by $activeArrDelay mins on arrival"
-                                else -> "reported as DELAYED"
+                                activeDepDelay > 0 -> context.getString(R.string.flight_delayed_dep_toast, activeDepDelay)
+                                activeArrDelay > 0 -> context.getString(R.string.flight_delayed_arr_toast, activeArrDelay)
+                                else -> context.getString(R.string.flight_delayed_generic)
                             }
-                            toastChannel.send("⏳ Flight $flightNo is $reason!")
+                            val msg = context.getString(R.string.flight_status_update_toast, flightNo, reason)
+                            toastChannel.send(msg)
                         }
                         val notifiedMap = _lastNotifiedStates.value.toMutableMap()
                         notifiedMap[flightNo] = currentSignature
