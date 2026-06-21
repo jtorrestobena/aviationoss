@@ -61,3 +61,14 @@ The Aviationstack Flight Tracker is an Android client-side application built in 
 3. **Schema Schema Integrity**: If you modify `CachedFlightEntity.kt` fields, remember to increment the SQLite Version number in `AppDatabase.kt` (currently Version **2**).
 4. **API Credit Preservation**: The app tracks API calls inside local persistent storage (`remainingFreeRequests`). Respect the credit-checking limit guards inside `FlightViewModel` to prevent API key exhaustions.
 5. **Secrets & env configuration**: Instruct users to set credentials via the AI Studio Secrets tab (`AVIATIONSTACK_API_KEY`). Do **NOT** hardcode API tokens inside source repositories.
+
+---
+
+## 🛠️ Code Quality & Warning Prevention
+
+1. **Jetpack Compose Icons**: Use `Icons.AutoMirrored.Filled.*` for bidirectional icons (e.g., `ArrowBack`, `ArrowForward`, `List`, `Help`). Always import both `androidx.compose.material.icons.filled.*` and `androidx.compose.material.icons.automirrored.filled.*` to ensure the correct mirrored variant is available.
+2. **Room Database**: When using `fallbackToDestructiveMigration()`, always use the explicit `fallbackToDestructiveMigration(dropAllTables = true)` to avoid deprecation warnings.
+3. **Moshi Serialization**: Always use `@field:Json(name = "...")` for data class constructor parameters to explicitly target the field and avoid annotation target ambiguity warnings.
+4. **Annotation Targets**: When using annotations like `@StringRes` in data classes, use explicit site-targets if necessary (e.g., `@param:StringRes`).
+5. **Coroutine Scopes**: Use `@OptIn(ExperimentalCoroutinesApi::class)` when using advanced Flow operators like `flatMapLatest` in ViewModels.
+6. **Redundant Code**: Avoid "always true/false" conditions and unused variables. Ensure all functions in DAOs and Repositories are utilized or marked as planned for future use.

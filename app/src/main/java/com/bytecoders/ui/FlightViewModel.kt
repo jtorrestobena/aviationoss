@@ -15,10 +15,10 @@ import com.bytecoders.data.model.OpenMeteoResponse
 import com.bytecoders.data.repository.FlightRepository
 import com.bytecoders.data.repository.Resource
 import com.bytecoders.util.UiText
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.channels.Channel
 
 data class FavoriteFlightStatus(
@@ -104,6 +104,7 @@ class FlightViewModel(application: Application) : AndroidViewModel(application) 
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Filtered cached flights based on query
+    @OptIn(ExperimentalCoroutinesApi::class)
     val filteredCachedFlights: StateFlow<List<CachedFlightEntity>> = cacheSearchQuery
         .flatMapLatest { query ->
             if (query.isBlank()) {

@@ -151,34 +151,32 @@ class FlightRepository(
             else -> "70deedb5f2fd067dd5cc9cfb6cfddf71" // Fallback default test key
         }
 
-        if (resolvedKey != null) {
-            try {
-                val response = apiService.getFlights(
-                    apiKey = resolvedKey,
-                    departureIata = departureIata.trim().uppercase()
-                )
-                val flightsList = response.data
-                if (flightsList != null && flightsList.isNotEmpty()) {
-                    val bookmarkedIds = flightDao.getBookmarkedFlightIds().toSet()
-                    val entities = flightsList.map { dto ->
-                        val entity = dtoToEntity(dto)
-                        if (bookmarkedIds.contains(entity.id)) {
-                            entity.copy(isBookmarked = true)
-                        } else {
-                            entity
-                        }
+        try {
+            val response = apiService.getFlights(
+                apiKey = resolvedKey,
+                departureIata = departureIata.trim().uppercase()
+            )
+            val flightsList = response.data
+            if (flightsList != null && flightsList.isNotEmpty()) {
+                val bookmarkedIds = flightDao.getBookmarkedFlightIds().toSet()
+                val entities = flightsList.map { dto ->
+                    val entity = dtoToEntity(dto)
+                    if (bookmarkedIds.contains(entity.id)) {
+                        entity.copy(isBookmarked = true)
+                    } else {
+                        entity
                     }
-                    flightDao.insertFlights(entities)
-
-                    val otherFlights = entities.filter { it.id != currentFlightId }
-                    // Sort by scheduled time ascending to find the next departure
-                    val upcoming = otherFlights.sortedBy { it.departureScheduled ?: "" }.firstOrNull()
-                    emit(Resource.Success(upcoming))
-                    return@flow
                 }
-            } catch (e: Exception) {
-                // Ignore network error and fall back to local database
+                flightDao.insertFlights(entities)
+
+                val otherFlights = entities.filter { it.id != currentFlightId }
+                // Sort by scheduled time ascending to find the next departure
+                val upcoming = otherFlights.sortedBy { it.departureScheduled ?: "" }.firstOrNull()
+                emit(Resource.Success(upcoming))
+                return@flow
             }
+        } catch (e: Exception) {
+            // Ignore network error and fall back to local database
         }
 
         try {

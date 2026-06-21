@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -739,7 +740,7 @@ fun LiveSearchScreen(
                             )
                         }
                         Icon(
-                            imageVector = Icons.Default.ArrowForward,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Go to Settings",
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(18.dp)
@@ -828,7 +829,7 @@ fun LiveSearchScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.AirplaneTicket,
+                                    imageVector = Icons.AutoMirrored.Filled.AirplaneTicket,
                                     contentDescription = stringResource(R.string.cd_empty_results),
                                     tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
                                     modifier = Modifier.size(48.dp)
@@ -1558,7 +1559,7 @@ fun ProfileConfigScreen(
                 horizontalArrangement = Arrangement.Start
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                 }
             }
 
@@ -1684,7 +1685,7 @@ fun FlightDetailScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back), modifier = Modifier.size(24.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back), modifier = Modifier.size(24.dp))
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))

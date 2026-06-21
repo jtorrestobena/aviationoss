@@ -29,14 +29,8 @@ interface FlightDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFlights(flights: List<CachedFlightEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFlight(flight: CachedFlightEntity)
-
     @Query("UPDATE cached_flights SET isBookmarked = :isBookmarked WHERE id = :flightId")
     suspend fun updateBookmarkState(flightId: String, isBookmarked: Boolean)
-
-    @Query("DELETE FROM cached_flights WHERE isBookmarked = 0 AND cachedAtEpochMs < :expiryTimeMs")
-    suspend fun deleteOldCache(expiryTimeMs: Long)
 
     @Query("DELETE FROM cached_flights WHERE isBookmarked = 0")
     suspend fun clearCache()
