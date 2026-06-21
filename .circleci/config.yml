@@ -8,6 +8,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
+      tag: default
     steps:
       - checkout
       - run:
@@ -30,6 +31,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
+      tag: default
     steps:
       - attach_workspace:
           at: .
@@ -47,6 +49,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
+      tag: default
     steps:
       - attach_workspace:
           at: .
