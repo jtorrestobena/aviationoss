@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.bytecoders.BuildConfig
 import com.bytecoders.R
-import com.bytecoders.getAirportCoords
+import com.bytecoders.data.utils.AirportUtils
 import com.bytecoders.data.local.AppDatabase
 import com.bytecoders.data.local.CachedFlightEntity
 import com.bytecoders.data.remote.AviationstackApiService
@@ -248,7 +248,7 @@ class FlightViewModel(application: Application) : AndroidViewModel(application) 
         _destinationWeather.value = Resource.Loading
         viewModelScope.launch {
             try {
-                val coords = getAirportCoords(arrivalIata)
+                val coords = AirportUtils.getAirportCoords(arrivalIata)
                 val response = weatherApiService.getCurrentWeather(latitude = coords.first, longitude = coords.second)
                 _destinationWeather.value = Resource.Success(response)
             } catch (e: Exception) {
