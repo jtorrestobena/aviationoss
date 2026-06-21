@@ -19,6 +19,7 @@ interface AviationstackApiService {
         @Query("flight_number") flightNumber: String? = null,
         @Query("flight_iata") flightIata: String? = null,
         @Query("airline_iata") airlineIata: String? = null,
+        @Query("airline_name") airlineName: String? = null,
         @Query("dep_iata") departureIata: String? = null,
         @Query("arr_iata") arrivalIata: String? = null,
         @Query("limit") limit: Int = 100

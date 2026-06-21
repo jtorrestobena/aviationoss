@@ -40,4 +40,7 @@ interface FlightDao {
 
     @Query("SELECT COUNT(*) FROM cached_flights WHERE isBookmarked = 0")
     suspend fun getCacheCount(): Int
+
+    @Query("SELECT * FROM cached_flights WHERE departureIata = :departureIata")
+    suspend fun getFlightsByDeparture(departureIata: String): List<CachedFlightEntity>
 }

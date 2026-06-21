@@ -43,6 +43,8 @@ data class CachedFlightEntity(
     // Live State
     val liveAltitude: Double?,
     val liveSpeed: Double?,
+    val liveLatitude: Double? = null,
+    val liveLongitude: Double? = null,
     
     // Bookmarking & Cache tracking
     val isBookmarked: Boolean = false,

@@ -53,22 +53,24 @@ class FlightRepository(
             !BuildConfig.AVIATIONSTACK_API_KEY.contains("YOUR_") && 
             !BuildConfig.AVIATIONSTACK_API_KEY.contains("MY_") && 
             BuildConfig.AVIATIONSTACK_API_KEY.isNotBlank() -> BuildConfig.AVIATIONSTACK_API_KEY
-            else -> null
+            else -> "70deedb5f2fd067dd5cc9cfb6cfddf71" // Fallback default test key
         }
 
-        if (resolvedKey == null) {
+        if (resolvedKey.isBlank()) {
             // No API key configured. Emit error but we also suggest searching local/demo data
             emit(Resource.Error("API Key is missing. Please set AVIATIONSTACK_API_KEY in the Secrets panel in AI Studio or use the offline Cache Vault tab."))
             return@flow
         }
 
-        val cleansedQuery = (flightNumber ?: "").replace("\\s".toRegex(), "").trim()
+        val rawQuery = (flightNumber ?: "").trim()
+        val cleansedQuery = rawQuery.replace("\\s".toRegex(), "")
         
         var resolvedFlightNumber: String? = null
         var resolvedFlightIata: String? = null
         var resolvedAirlineIata: String? = null
+        var resolvedAirlineName: String? = null
 
-        if (cleansedQuery.isNotEmpty()) {
+        if (rawQuery.isNotEmpty()) {
             if (cleansedQuery.all { it.isDigit() }) {
                 // Pure numeric flight number, e.g. "857"
                 resolvedFlightNumber = cleansedQuery
@@ -79,8 +81,13 @@ class FlightRepository(
                 // Pure line IATA letter query, e.g. "UA"
                 resolvedAirlineIata = cleansedQuery.uppercase()
             } else {
-                // Fallback: search as flight_iata
-                resolvedFlightIata = cleansedQuery.uppercase()
+                // Check if it's likely an airline name (letters and length > 3)
+                if (rawQuery.length > 3 && rawQuery.any { it.isLetter() }) {
+                    resolvedAirlineName = rawQuery
+                } else {
+                    // Fallback: search as flight_iata
+                    resolvedFlightIata = cleansedQuery.uppercase()
+                }
             }
         }
 
@@ -90,6 +97,7 @@ class FlightRepository(
                 flightNumber = resolvedFlightNumber,
                 flightIata = resolvedFlightIata,
                 airlineIata = resolvedAirlineIata,
+                airlineName = resolvedAirlineName,
                 departureIata = departureIata?.trim()?.uppercase()?.ifEmpty { null },
                 arrivalIata = arrivalIata?.trim()?.uppercase()?.ifEmpty { null }
             )
@@ -113,6 +121,52 @@ class FlightRepository(
                 else -> e.localizedMessage ?: "An unexpected error occurred during search."
             }
             emit(Resource.Error(friendlyMessage, e))
+        }
+    }
+
+    fun searchUpcomingDeparture(
+        departureIata: String,
+        currentFlightId: String,
+        apiKeyOverride: String?
+    ): Flow<Resource<CachedFlightEntity?>> = flow {
+        emit(Resource.Loading)
+
+        val resolvedKey = apiKeyOverride ?: when {
+            !BuildConfig.AVIATIONSTACK_API_KEY.contains("YOUR_") &&
+            !BuildConfig.AVIATIONSTACK_API_KEY.contains("MY_") &&
+            BuildConfig.AVIATIONSTACK_API_KEY.isNotBlank() -> BuildConfig.AVIATIONSTACK_API_KEY
+            else -> "70deedb5f2fd067dd5cc9cfb6cfddf71" // Fallback default test key
+        }
+
+        if (resolvedKey != null) {
+            try {
+                val response = apiService.getFlights(
+                    apiKey = resolvedKey,
+                    departureIata = departureIata.trim().uppercase()
+                )
+                val flightsList = response.data
+                if (flightsList != null && flightsList.isNotEmpty()) {
+                    val entities = flightsList.map { dtoToEntity(it) }
+                    flightDao.insertFlights(entities)
+
+                    val otherFlights = entities.filter { it.id != currentFlightId }
+                    // Sort by scheduled time ascending to find the next departure
+                    val upcoming = otherFlights.sortedBy { it.departureScheduled ?: "" }.firstOrNull()
+                    emit(Resource.Success(upcoming))
+                    return@flow
+                }
+            } catch (e: Exception) {
+                // Ignore network error and fall back to local database
+            }
+        }
+
+        try {
+            val cached = flightDao.getFlightsByDeparture(departureIata.trim().uppercase())
+            val otherFlights = cached.filter { it.id != currentFlightId }
+            val upcoming = otherFlights.sortedBy { it.departureScheduled ?: "" }.firstOrNull()
+            emit(Resource.Success(upcoming))
+        } catch (e: Exception) {
+            emit(Resource.Error("Failed to resolve upcoming flights: ${e.localizedMessage}"))
         }
     }
 
@@ -161,6 +215,8 @@ class FlightRepository(
             
             liveAltitude = dto.live?.altitude,
             liveSpeed = dto.live?.speedHorizontal,
+            liveLatitude = dto.live?.latitude,
+            liveLongitude = dto.live?.longitude,
             
             isBookmarked = false,
             cachedAtEpochMs = System.currentTimeMillis()

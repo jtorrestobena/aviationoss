@@ -5,9 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,11 +22,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -35,10 +41,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bytecoders.aviationoss.data.local.CachedFlightEntity
+import com.bytecoders.aviationoss.data.model.OpenMeteoResponse
 import com.bytecoders.aviationoss.data.repository.Resource
 import com.bytecoders.aviationoss.ui.FlightViewModel
 import com.bytecoders.aviationoss.ui.theme.*
@@ -64,6 +74,13 @@ class MainActivity : ComponentActivity() {
 fun FlightRadarApp(
     viewModel: FlightViewModel
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.toastChannelFlow.collect { message ->
+            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     val activeTab by viewModel.currentTab.collectAsStateWithLifecycle()
     val shieldRemaining by viewModel.remainingFreeRequests.collectAsStateWithLifecycle()
     val isApiKeyConfigured by viewModel.isApiKeyConfigured.collectAsStateWithLifecycle()
@@ -202,10 +219,21 @@ fun FlightRadarApp(
 
     // Detail cockpit popup scan
     selectedFlightForDetail?.let { flight ->
+        LaunchedEffect(flight.id) {
+            viewModel.fetchUpcomingFlight(flight.departureIata ?: "", flight.id)
+            viewModel.fetchDestinationWeather(flight.arrivalIata ?: "")
+        }
+        val upcomingState by viewModel.upcomingFlightForDetail.collectAsStateWithLifecycle()
+        val weatherState by viewModel.destinationWeather.collectAsStateWithLifecycle()
         FlightDetailDialog(
             flight = flight,
+            upcomingState = upcomingState,
+            weatherState = weatherState,
             onDismiss = { selectedFlightForDetail = null },
-            onToggleBookmark = { viewModel.toggleBookmark(flight) }
+            onToggleBookmark = { viewModel.toggleBookmark(flight) },
+            onUpcomingFlightClick = { nextFlight ->
+                selectedFlightForDetail = nextFlight
+            }
         )
     }
 }
@@ -242,7 +270,7 @@ fun SleekHeader(
                 )
             }
             Text(
-                text = "Avionstack",
+                text = "Aviation OSS",
                 fontSize = 21.sp,
                 fontWeight = FontWeight.Medium,
                 letterSpacing = (-0.5).sp,
@@ -652,7 +680,7 @@ fun LiveSearchScreen(
                         ) {
                             Icon(Icons.Default.Radar, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Query Aviationstack Live", fontWeight = FontWeight.Bold)
+                            Text("Query Aviation OSS Live", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -683,13 +711,13 @@ fun LiveSearchScreen(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Aviationstack API Key Not Configured",
+                                text = "Aviation OSS API Key Not Configured",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
                             Text(
-                                text = "Tap here to configure your access key in Settings to search real-time Aviationstack logs.",
+                                text = "Tap here to configure your access key in Settings to search real-time Aviation OSS logs.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
                             )
@@ -725,19 +753,7 @@ fun LiveSearchScreen(
         ) {
             when (val state = searchState) {
                 is Resource.Loading -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            "Contacting radar servers...",
-                            color = MaterialTheme.colorScheme.secondary,
-                            fontSize = 13.sp
-                        )
-                    }
+                    FlightSkeletonList()
                 }
                 is Resource.Error -> {
                     Column(
@@ -986,71 +1002,394 @@ fun WatchlistScreen(
     activeTrackingFlight: CachedFlightEntity?
 ) {
     val bookmarkedList by viewModel.bookmarkedFlights.collectAsStateWithLifecycle()
+    val favoriteNumbers by viewModel.favoriteFlightNumbers.collectAsStateWithLifecycle()
+    val favoriteStatuses by viewModel.favoriteFlightStatuses.collectAsStateWithLifecycle()
+    val isPollingActive by viewModel.isPeriodicPollingActive.collectAsStateWithLifecycle()
+    val nextPollTime by viewModel.nextPollTime.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier.fillMaxSize()
+    var newFlightInput by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 24.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            if (bookmarkedList.isEmpty()) {
+        // Section A: Favorite Flight Alerts & Background Polling Panel
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+            ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    // Header title row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NotificationsActive,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "FLIGHT STATUS ALERTS",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Background Polling status details
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isPollingActive) ColorActive.copy(alpha = 0.15f)
+                                    else MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+                                )
+                                .clickable { viewModel.togglePeriodicPolling() }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isPollingActive) ColorActive else MaterialTheme.colorScheme.secondary)
+                                )
+                                Text(
+                                    text = if (isPollingActive) "AUTO POLL ON" else "AUTO POLL OFF",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isPollingActive) ColorActive else MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Input Row to Add Flight No.
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = newFlightInput,
+                            onValueChange = { newFlightInput = it },
+                            placeholder = { Text("E.g. LH430, UA101", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                            singleLine = true,
+                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
+                                .testTag("fav_flight_input"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                            )
+                        )
+
+                        Button(
+                            onClick = {
+                                if (newFlightInput.isNotBlank()) {
+                                    viewModel.addFavoriteFlightNumber(newFlightInput)
+                                    newFlightInput = ""
+                                    keyboardController?.hide()
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .height(50.dp)
+                                .testTag("add_fav_button"),
+                            contentPadding = PaddingValues(horizontal = 14.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add Favorite",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    // Polling Countdown indicator
+                    if (isPollingActive && nextPollTime != null) {
+                        val currentMs = System.currentTimeMillis()
+                        val diffMs = (nextPollTime!! - currentMs).coerceAtLeast(0)
+                        val diffSecs = (diffMs / 1000).toInt()
+                        Text(
+                            text = "Next background state check in ${diffSecs}s",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // List of Favorite Flight Numbers Rows
+                    if (favoriteNumbers.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No favorite flight numbers watchlists yet.",
+                                fontSize = 11.sp,
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
+                            )
+                        }
+                    } else {
+                        // Header line with master Poll Now action
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "MONITORED NUMBERS (${favoriteNumbers.size})",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+
+                            Text(
+                                text = "Poll All",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .clickable { viewModel.pollAllFavorites() }
+                                    .padding(vertical = 2.dp, horizontal = 4.dp)
+                            )
+                        }
+
+                        favoriteNumbers.forEach { flightNo ->
+                            val statusInfo = favoriteStatuses[flightNo]
+                            FavoriteFlightNumberRow(
+                                flightNo = flightNo,
+                                statusInfo = statusInfo,
+                                onRefresh = { viewModel.pollSingleFavorite(flightNo) },
+                                onDelete = { viewModel.removeFavoriteFlightNumber(flightNo) }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        // Section B: VIP Bookmark List Header
+        item {
+            Text(
+                text = "BOOKMARKED FLIGHT CARDS (${bookmarkedList.size})",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 4.dp)
+            )
+        }
+
+        // Section C: Bookmarked list content
+        if (bookmarkedList.isEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.StarOutline,
+                            contentDescription = "Empty Watchlist",
+                            tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                            modifier = Modifier.size(44.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "No Bookmarks Saved",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = "Aviation transponders starred will appear here.",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                }
+            }
+        } else {
+            items(bookmarkedList) { flight ->
+                FlightCardItem(
+                    flight = flight,
+                    onClick = { onFlightClick(flight) },
+                    onBookmarkToggle = { viewModel.toggleBookmark(flight) },
+                    onSelectForTracking = { onSelectForTracking(flight) },
+                    isActiveTracking = activeTrackingFlight?.id == flight.id
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun FavoriteFlightNumberRow(
+    flightNo: String,
+    statusInfo: com.bytecoders.aviationoss.ui.FavoriteFlightStatus?,
+    onRefresh: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = flightNo,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    // Status pill/color if polled
+                    if (statusInfo?.status != null) {
+                        val status = statusInfo.status
+                        val (color, label) = when {
+                            status == "not_found" -> Pair(MaterialTheme.colorScheme.secondary, "Not Found")
+                            status.lowercase() == "cancelled" -> Pair(ColorCancelled, "CANCELLED")
+                            status.lowercase() == "active" -> Pair(ColorActive, "ACTIVE")
+                            status.lowercase() == "delayed" -> Pair(ColorCancelled, "DELAYED")
+                            else -> Pair(ColorScheduled, status.uppercase())
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(color.copy(alpha = 0.15f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = color
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Detail updates text
+                val detailText = when {
+                    statusInfo?.isPolling == true -> "Refreshing data status..."
+                    statusInfo?.status == "not_found" -> "No current schedule on transponder"
+                    statusInfo?.status != null -> {
+                        val totalDelay = (statusInfo.departureDelay ?: 0) + (statusInfo.arrivalDelay ?: 0)
+                        val delayStr = if (totalDelay > 0) "⚠️ delayed +${totalDelay}m" else "On time"
+                        val updateTime = if (statusInfo.lastChecked != null) {
+                            val timeStr = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(statusInfo.lastChecked))
+                            "at $timeStr"
+                        } else ""
+                        "$delayStr • Updated $updateTime"
+                    }
+                    else -> "Pending status check..."
+                }
+
+                Text(
+                    text = detailText,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+
+            // Actions row: refresh, remove
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (statusInfo?.isPolling == true) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    IconButton(
+                        onClick = onRefresh,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Poll Status",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.StarOutline,
-                        contentDescription = "Empty Watchlist",
-                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
-                        modifier = Modifier.size(56.dp)
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Remove Favorite",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Watchlist is Empty",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        text = "Tap the star icon on any flight cards to populate your tracking VIP list.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 16.sp,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    item {
-                        Text(
-                            text = "WATCHED VIP FLIGHTS (${bookmarkedList.size})",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)
-                        )
-                    }
-
-                    items(bookmarkedList) { flight ->
-                        FlightCardItem(
-                            flight = flight,
-                            onClick = { onFlightClick(flight) },
-                            onBookmarkToggle = { viewModel.toggleBookmark(flight) },
-                            onSelectForTracking = { onSelectForTracking(flight) },
-                            isActiveTracking = activeTrackingFlight?.flightIata == flight.flightIata
-                        )
-                    }
                 }
             }
         }
@@ -1279,8 +1618,11 @@ fun ProfileConfigDialog(
 @Composable
 fun FlightDetailDialog(
     flight: CachedFlightEntity,
+    upcomingState: Resource<CachedFlightEntity?>,
+    weatherState: Resource<OpenMeteoResponse?>,
     onDismiss: () -> Unit,
-    onToggleBookmark: () -> Unit
+    onToggleBookmark: () -> Unit,
+    onUpcomingFlightClick: (CachedFlightEntity) -> Unit
 ) {
     val statusColor = when (flight.flightStatus?.lowercase()) {
         "active" -> ColorActive
@@ -1301,6 +1643,7 @@ fun FlightDetailDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(20.dp)
             ) {
                 // Header details
@@ -1400,6 +1743,146 @@ fun FlightDetailDialog(
                     }
                 }
 
+                // Destination Weather Section
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "DESTINATION WEATHER SCANNER",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val getWeatherInfo = { code: Int? ->
+                    when (code) {
+                        0 -> Pair("Clear Sky", Icons.Default.WbSunny)
+                        1, 2, 3 -> Pair("Partly Cloudy", Icons.Default.Cloud)
+                        45, 48 -> Pair("Foggy", Icons.Default.Cloud)
+                        51, 53, 55 -> Pair("Drizzle", Icons.Default.Cloud)
+                        61, 63, 65 -> Pair("Rainy", Icons.Default.Cloud)
+                        71, 73, 75 -> Pair("Snowy", Icons.Default.Cloud)
+                        80, 81, 82 -> Pair("Showers", Icons.Default.Cloud)
+                        95, 96, 99 -> Pair("Thunderstorm", Icons.Default.Warning)
+                        else -> Pair("Overcast", Icons.Default.Cloud)
+                    }
+                }
+
+                when (weatherState) {
+                    is Resource.Loading -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Querying weather satellite...", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                        }
+                    }
+                    is Resource.Error -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Error",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = weatherState.message ?: "Weather scanning offline",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                    is Resource.Success -> {
+                        val response = weatherState.data
+                        if (response?.currentWeather != null) {
+                            val cur = response.currentWeather
+                            val (desc, icon) = getWeatherInfo(cur.weathercode)
+                            
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f))
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = "Weather Icon",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = desc,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Current Conditions",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            text = "${cur.temperature ?: "--"}°C",
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 20.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Wind: ${cur.windspeed ?: "--"} km/h",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "Weather metrics unavailable for this region",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Map Section
+                Spacer(modifier = Modifier.height(14.dp))
+                FlightRouteMap(
+                    flight = flight,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+
                 // Aircraft systems telemetry info
                 if (flight.aircraftIata != null || flight.liveAltitude != null) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
@@ -1430,6 +1913,15 @@ fun FlightDetailDialog(
                         }
                     }
                 }
+
+                // Upcoming flight section
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
+                Text("NEXT DEPARTURE FROM ${flight.departureIata ?: ""}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(6.dp))
+                UpcomingFlightSummaryCard(
+                    upcomingState = upcomingState,
+                    onFlightClick = onUpcomingFlightClick
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -1561,14 +2053,14 @@ fun SettingsScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Aviationstack API Config",
+                            text = "Aviation OSS API Config",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
                     Text(
-                        text = "To request live flight details beyond the pre-loaded demo cache, enter down your custom Aviationstack access key.",
+                        text = "To request live flight details beyond the pre-loaded demo cache, enter down your custom Aviation OSS access key.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1578,7 +2070,7 @@ fun SettingsScreen(
                         value = apiKeyText,
                         onValueChange = { apiKeyText = it },
                         modifier = Modifier.fillMaxWidth().testTag("api_key_input_field"),
-                        label = { Text("Aviationstack Access Key") },
+                        label = { Text("Aviation OSS Access Key") },
                         placeholder = { Text("Enter access_key...") },
                         singleLine = true,
                         visualTransformation = if (keyVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
@@ -1685,7 +2177,7 @@ fun SettingsScreen(
                     }
 
                     Text(
-                        text = "To protect you from free tier rate limitations on aviationstack, requests are throttled daily. Remaining: $shieldRemaining/100 calls.",
+                        text = "To protect you from free tier rate limitations on Aviation OSS, requests are throttled daily. Remaining: $shieldRemaining/100 calls.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1731,6 +2223,541 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun shimmerBrush(
+    targetValue: Float = 1000f,
+    showShimmer: Boolean = true
+): Brush {
+    return if (showShimmer) {
+        val shimmerColors = listOf(
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        )
+
+        val transition = rememberInfiniteTransition(label = "shimmer_transition")
+        val translateAnimation = transition.animateFloat(
+            initialValue = 0f,
+            targetValue = targetValue,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1200, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "shimmer_translation"
+        )
+
+        Brush.linearGradient(
+            colors = shimmerColors,
+            start = Offset.Zero,
+            end = Offset(x = translateAnimation.value, y = translateAnimation.value)
+        )
+    } else {
+        SolidColor(MaterialTheme.colorScheme.surfaceVariant)
+    }
+}
+
+@Composable
+fun FlightSkeletonCard(brush: Brush) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Icon container skeleton
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(brush)
+        )
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        // Identification info skeleton
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Flight ID/number bar
+            Box(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+            // Sub-info bar (cities, carrier)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        // Right side badge and action
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Status Tag skeleton
+            Box(
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(brush)
+            )
+            // Bookmark icon skeleton
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(brush)
+            )
+        }
+    }
+}
+
+@Composable
+fun FlightSkeletonList() {
+    val brush = shimmerBrush()
+    
+    // Rotating radar visual for expressive material feedback
+    val transition = rememberInfiniteTransition(label = "radar_sweep")
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+    val pulseAlpha by transition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("flight_skeleton_loading"),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Expressive Header
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Spinning customized expressive loading radar indicator
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Radar,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = pulseAlpha),
+                        modifier = Modifier
+                            .size(22.dp)
+                            .graphicsLayer(rotationZ = rotation)
+                    )
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "SYNCHRONIZING RADAR TELEMETRY",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Interrogating airspace transponders...",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                }
+            }
+        }
+
+        // Render multiple cards for skeleton list representation
+        repeat(4) {
+            FlightSkeletonCard(brush = brush)
+        }
+    }
+}
+
+fun getAirportCoords(iata: String?): Pair<Double, Double> {
+    val upper = iata?.uppercase()?.trim() ?: ""
+    return when (upper) {
+        "SFO" -> Pair(37.6213, -122.3790)
+        "DFW" -> Pair(32.8998, -97.0403)
+        "LHR" -> Pair(51.4700, -0.4543)
+        "IAD" -> Pair(38.9531, -77.4565)
+        "FRA" -> Pair(50.0379, 8.5622)
+        "JFK" -> Pair(40.6413, -73.7781)
+        "HND" -> Pair(35.5494, 139.7798)
+        "LAX" -> Pair(33.9416, -118.4085)
+        "ORD" -> Pair(41.9742, -87.9073)
+        "CDG" -> Pair(49.0097, 2.5479)
+        "AMS" -> Pair(52.3105, 4.7683)
+        "SIN" -> Pair(1.3644, 103.9915)
+        "DXB" -> Pair(25.2532, 55.3657)
+        "HKG" -> Pair(22.3080, 113.9185)
+        "SYD" -> Pair(-33.9461, 151.1772)
+        "ATL" -> Pair(33.6407, -84.4277)
+        "DEN" -> Pair(39.8561, -104.6737)
+        "PEK" -> Pair(40.0799, 116.5971)
+        "PVG" -> Pair(31.1443, 121.8083)
+        "CAN" -> Pair(23.3924, 113.2988)
+        "IST" -> Pair(41.2752, 28.7519)
+        "DEL" -> Pair(28.5562, 77.1001)
+        "BOM" -> Pair(19.0896, 72.8656)
+        "NRT" -> Pair(35.7720, 140.3929)
+        "KIX" -> Pair(34.4320, 135.2304)
+        "ICN" -> Pair(37.4602, 126.4407)
+        "MAD" -> Pair(40.4839, -3.5680)
+        "FCO" -> Pair(41.8003, 12.2389)
+        "MUC" -> Pair(48.3538, 11.7861)
+        "BCN" -> Pair(41.2974, 2.0833)
+        "YVR" -> Pair(49.1967, -123.1815)
+        "YYZ" -> Pair(43.6777, -79.6248)
+        "MEL" -> Pair(-37.6690, 144.8410)
+        "MIA" -> Pair(25.7959, -80.2870)
+        "SEA" -> Pair(47.4502, -122.3088)
+        "BOS" -> Pair(42.3656, -71.0096)
+        "EWR" -> Pair(40.6895, -74.1745)
+        "CLT" -> Pair(35.2140, -80.9431)
+        "PHX" -> Pair(33.4352, -112.0101)
+        "IAH" -> Pair(29.9902, -95.3368)
+        "MCO" -> Pair(28.4281, -81.3160)
+        "EZE" -> Pair(-34.8222, -58.5358)
+        "GRU" -> Pair(-23.4318, -46.4678)
+        "CPH" -> Pair(55.6180, 12.6508)
+        "ARN" -> Pair(59.6519, 17.9186)
+        "HEL" -> Pair(60.3172, 24.9633)
+        "OSL" -> Pair(60.1976, 11.1004)
+        "LIS" -> Pair(38.7756, -9.1355)
+        "ATH" -> Pair(37.9356, 23.9484)
+        "DOH" -> Pair(25.2611, 51.5651)
+        "RUH" -> Pair(24.9576, 46.6988)
+        "JED" -> Pair(21.6796, 39.1565)
+        "TPE" -> Pair(25.0797, 121.2342)
+        "BKK" -> Pair(13.6899, 100.7501)
+        "KUL" -> Pair(2.7456, 101.7072)
+        "MNL" -> Pair(14.5086, 121.0194)
+        "CGK" -> Pair(-6.1256, 106.6559)
+        "BNE" -> Pair(-27.3842, 153.1175)
+        "AKL" -> Pair(-37.0081, 174.7917)
+        "CPT" -> Pair(-33.9715, 18.6021)
+        "JNB" -> Pair(-26.1367, 28.2411)
+        "MEX" -> Pair(19.4363, -99.0721)
+        "DUB" -> Pair(53.4264, -6.2701)
+        "MAN" -> Pair(53.3588, -2.2749)
+        "BRU" -> Pair(50.9008, 4.4844)
+        "ZRH" -> Pair(47.4582, 8.5555)
+        "VIE" -> Pair(48.1103, 16.5697)
+        "GVA" -> Pair(46.2370, 6.1092)
+        else -> {
+            val code = upper.take(3)
+            val baseLat = 20.0 + (code.getOrNull(0)?.code?.rem(40) ?: 0) - 20.0
+            val baseLng = (code.getOrNull(1)?.code?.rem(180) ?: 0) * if ((code.getOrNull(2)?.code?.rem(2) ?: 0) == 0) 1.0 else -1.0
+            Pair(baseLat, baseLng)
+        }
+    }
+}
+
+@Composable
+fun FlightRouteMap(
+    flight: CachedFlightEntity,
+    modifier: Modifier = Modifier
+) {
+    val depIata = flight.departureIata ?: "DEP"
+    val arrIata = flight.arrivalIata ?: "ARR"
+    val depCoords = getAirportCoords(depIata)
+    val arrCoords = getAirportCoords(arrIata)
+
+    val showLive = flight.liveLatitude != null && flight.liveLongitude != null
+    val liveLat = flight.liveLatitude ?: 0.0
+    val liveLng = flight.liveLongitude ?: 0.0
+    val flightIataStr = flight.flightIata ?: flight.flightNumber ?: "Flight"
+
+    val htmlContent = remember(flight) {
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+            <style>
+                html, body {
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #12131a;
+                }
+                #map {
+                    width: 100%;
+                    height: 100%;
+                    background-color: #12131a;
+                }
+                .leaflet-container {
+                    background-color: #12131a !important;
+                }
+                .custom-tooltip {
+                    background: #1e202c !important;
+                    border: 1px solid #4a5470 !important;
+                    color: #ffffff !important;
+                    font-family: 'Roboto', sans-serif;
+                    font-size: 10px;
+                    font-weight: bold;
+                    border-radius: 6px;
+                    padding: 2px 6px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                }
+            </style>
+        </head>
+        <body>
+            <div id="map"></div>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <script>
+                var map = L.map('map', {
+                    zoomControl: false,
+                    attributionControl: false
+                });
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19
+                }).addTo(map);
+
+                var depLatLng = [${depCoords.first}, ${depCoords.second}];
+                var arrLatLng = [${arrCoords.first}, ${arrCoords.second}];
+
+                L.circleMarker(depLatLng, {
+                    radius: 7,
+                    fillColor: '#3b82f6',
+                    color: '#ffffff',
+                    weight: 2,
+                    fillOpacity: 0.95
+                }).addTo(map).bindTooltip('$depIata', { permanent: true, direction: 'top', className: 'custom-tooltip' });
+
+                L.circleMarker(arrLatLng, {
+                    radius: 7,
+                    fillColor: '#10b981',
+                    color: '#ffffff',
+                    weight: 2,
+                    fillOpacity: 0.95
+                }).addTo(map).bindTooltip('$arrIata', { permanent: true, direction: 'bottom', className: 'custom-tooltip' });
+
+                var path = L.polyline([depLatLng, arrLatLng], {
+                    color: '#6366f1',
+                    weight: 3,
+                    dashArray: '4, 6',
+                    opacity: 0.75
+                }).addTo(map);
+
+                var bounds = L.latLngBounds([depLatLng, arrLatLng]);
+
+                if ($showLive) {
+                    var liveLatLng = [$liveLat, $liveLng];
+                    L.circleMarker(liveLatLng, {
+                        radius: 8,
+                        fillColor: '#f97316',
+                        color: '#ffffff',
+                        weight: 2,
+                        fillOpacity: 1.0
+                    }).addTo(map).bindTooltip('$flightIataStr ✈', { permanent: true, direction: 'right', className: 'custom-tooltip' });
+                    
+                    bounds.extend(liveLatLng);
+                }
+
+                map.fitBounds(bounds, { padding: [35, 35] });
+            </script>
+        </body>
+        </html>
+        """.trimIndent()
+    }
+
+    Box(
+        modifier = modifier
+            .testTag("flight_route_map")
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
+    ) {
+        AndroidView(
+            factory = { context ->
+                WebView(context).apply {
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.useWideViewPort = true
+                    webViewClient = WebViewClient()
+                }
+            },
+            update = { webView ->
+                webView.loadDataWithBaseURL("https://unpkg.com", htmlContent, "text/html", "UTF-8", null)
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun UpcomingFlightSummaryCard(
+    upcomingState: Resource<CachedFlightEntity?>,
+    onFlightClick: (CachedFlightEntity) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+        )
+    ) {
+        when (upcomingState) {
+            is Resource.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Querying departures...",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+            is Resource.Error -> {
+                Text(
+                    text = "Could not fetch departures",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(14.dp)
+                )
+            }
+            is Resource.Success -> {
+                val flight = upcomingState.data
+                if (flight == null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No other flights scheduled today.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onFlightClick(flight) }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.FlightTakeoff,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = flight.flightIata ?: "Flight ${flight.flightNumber}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "To: ${flight.arrivalIata} - ${flight.arrivalAirport}",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.secondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = formatTimeDetailed(flight.departureScheduled),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            val statusColor = when (flight.flightStatus?.lowercase()) {
+                                "active" -> ColorActive
+                                "scheduled" -> ColorScheduled
+                                "landed" -> ColorLanded
+                                "cancelled" -> ColorCancelled
+                                else -> ColorScheduled
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(statusColor.copy(alpha = 0.15f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = (flight.flightStatus ?: "unknown").uppercase(),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = statusColor
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

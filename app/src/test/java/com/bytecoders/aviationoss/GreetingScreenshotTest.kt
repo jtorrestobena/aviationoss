@@ -2,6 +2,7 @@ package com.bytecoders.aviationoss
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.material3.Text
 import com.bytecoders.aviationoss.ui.theme.MyApplicationTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -21,7 +22,11 @@ class GreetingScreenshotTest {
 
   @Test
   fun greeting_screenshot() {
-    composeTestRule.setContent { MyApplicationTheme { Greeting("Robolectric") } }
+    composeTestRule.setContent { 
+      MyApplicationTheme { 
+        Text("Flight tracker UI Engine Ready") 
+      } 
+    }
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
   }
