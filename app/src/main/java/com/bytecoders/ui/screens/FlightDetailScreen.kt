@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.bytecoders.R
 import com.bytecoders.data.local.CachedFlightEntity
 import com.bytecoders.data.model.OpenMeteoResponse
+import com.bytecoders.data.model.WeatherCode
 import com.bytecoders.data.repository.Resource
 import com.bytecoders.ui.components.DetailPairRow
 import com.bytecoders.ui.components.FlightRouteMap
@@ -341,14 +342,24 @@ private fun mapWeatherCode(weatherState: Resource<OpenMeteoResponse?>): Pair<Str
         is Resource.Success -> {
             val code = res.data?.currentWeather?.weathercode
             when (code) {
-                0 -> Pair(stringResource(R.string.weather_clear), Icons.Default.WbSunny)
-                1, 2, 3 -> Pair(stringResource(R.string.weather_partly_cloudy), Icons.Default.Cloud)
-                45, 48 -> Pair(stringResource(R.string.weather_foggy), Icons.Default.Cloud)
-                51, 53, 55 -> Pair(stringResource(R.string.weather_drizzle), Icons.Default.Cloud)
-                61, 63, 65 -> Pair(stringResource(R.string.weather_rainy), Icons.Default.Cloud)
-                71, 73, 75 -> Pair(stringResource(R.string.weather_snowy), Icons.Default.Cloud)
-                80, 81, 82 -> Pair(stringResource(R.string.weather_showers), Icons.Default.Cloud)
-                95, 96, 99 -> Pair(stringResource(R.string.weather_thunderstorm), Icons.Default.Warning)
+                WeatherCode.CLEAR_SKY -> Pair(stringResource(R.string.weather_clear), Icons.Default.WbSunny)
+                WeatherCode.MAINLY_CLEAR, WeatherCode.PARTLY_CLOUDY, WeatherCode.OVERCAST ->
+                    Pair(stringResource(R.string.weather_partly_cloudy), Icons.Default.Cloud)
+                WeatherCode.FOG, WeatherCode.DEPOSITING_RIME_FOG ->
+                    Pair(stringResource(R.string.weather_foggy), Icons.Default.Cloud)
+                WeatherCode.DRIZZLE_LIGHT, WeatherCode.DRIZZLE_MODERATE, WeatherCode.DRIZZLE_DENSE,
+                WeatherCode.FREEZING_DRIZZLE_LIGHT, WeatherCode.FREEZING_DRIZZLE_DENSE ->
+                    Pair(stringResource(R.string.weather_drizzle), Icons.Default.Cloud)
+                WeatherCode.RAIN_SLIGHT, WeatherCode.RAIN_MODERATE, WeatherCode.RAIN_HEAVY,
+                WeatherCode.FREEZING_RAIN_LIGHT, WeatherCode.FREEZING_RAIN_HEAVY ->
+                    Pair(stringResource(R.string.weather_rainy), Icons.Default.Cloud)
+                WeatherCode.SNOW_FALL_SLIGHT, WeatherCode.SNOW_FALL_MODERATE, WeatherCode.SNOW_FALL_HEAVY,
+                WeatherCode.SNOW_GRAINS, WeatherCode.SNOW_SHOWERS_SLIGHT, WeatherCode.SNOW_SHOWERS_HEAVY ->
+                    Pair(stringResource(R.string.weather_snowy), Icons.Default.Cloud)
+                WeatherCode.RAIN_SHOWERS_SLIGHT, WeatherCode.RAIN_SHOWERS_MODERATE, WeatherCode.RAIN_SHOWERS_VIOLENT ->
+                    Pair(stringResource(R.string.weather_showers), Icons.Default.Cloud)
+                WeatherCode.THUNDERSTORM_SLIGHT_MODERATE, WeatherCode.THUNDERSTORM_WITH_SLIGHT_HAIL, WeatherCode.THUNDERSTORM_WITH_HEAVY_HAIL ->
+                    Pair(stringResource(R.string.weather_thunderstorm), Icons.Default.Warning)
                 else -> Pair(stringResource(R.string.weather_overcast), Icons.Default.Cloud)
             }
         }
