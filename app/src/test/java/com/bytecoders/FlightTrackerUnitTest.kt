@@ -14,6 +14,8 @@ import com.bytecoders.data.model.FlightDto
 import com.bytecoders.data.remote.AviationstackApiService
 import com.bytecoders.data.repository.FlightRepository
 import com.bytecoders.data.repository.Resource
+import com.bytecoders.data.utils.AirportUtils
+import com.bytecoders.util.DateTimeUtils
 import com.bytecoders.util.UiText
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
@@ -92,41 +94,41 @@ class FlightTrackerUnitTest {
     fun testFormatTime_success() {
         // Test standard ISO string parse
         val isoString = "2026-06-21T04:20:00+00:00"
-        val formatted = formatTime(isoString)
+        val formatted = DateTimeUtils.formatTime(isoString)
         assertNotNull(formatted)
-        
+
         // Blank/Null check
-        assertEquals("--:--", formatTime(""))
-        assertEquals("--:--", formatTime(null))
+        assertEquals("--:--", DateTimeUtils.formatTime(""))
+        assertEquals("--:--", DateTimeUtils.formatTime(null))
     }
 
     @Test
     fun testFormatTimeDetailed_success() {
         val isoString = "2026-06-21T10:15:00+00:00"
-        val formatted = formatTimeDetailed(isoString)
+        val formatted = DateTimeUtils.formatTimeDetailed(isoString)
         assertNotNull(formatted)
-        
-        assertEquals("--", formatTimeDetailed(""))
-        assertEquals("--", formatTimeDetailed(null))
+
+        assertEquals("--", DateTimeUtils.formatTimeDetailed(""))
+        assertEquals("--", DateTimeUtils.formatTimeDetailed(null))
     }
 
     @Test
     fun testGetAirportCoords_predefinedAndFallback() {
         // Predefined
-        val sfo = getAirportCoords("SFO")
+        val sfo = AirportUtils.getAirportCoords("SFO")
         assertEquals(37.6213, sfo.first, 0.0001)
         assertEquals(-122.3790, sfo.second, 0.0001)
 
-        val cdg = getAirportCoords("CDG")
+        val cdg = AirportUtils.getAirportCoords("CDG")
         assertEquals(49.0097, cdg.first, 0.0001)
         assertEquals(2.5479, cdg.second, 0.0001)
 
         // Case insensitivity
-        val laxLower = getAirportCoords("lax")
+        val laxLower = AirportUtils.getAirportCoords("lax")
         assertEquals(33.9416, laxLower.first, 0.0001)
 
         // Empty/Null fallback hash-based default
-        val emptyCoords = getAirportCoords(null)
+        val emptyCoords = AirportUtils.getAirportCoords(null)
         // Fallback generates algorithmically valid coordinates, assert that they exist
         assertNotNull(emptyCoords.first)
         assertNotNull(emptyCoords.second)
