@@ -107,7 +107,7 @@ fun LiveSearchScreen(
                         }),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
+                            .height(56.dp)
                             .testTag("input_flight_number")
                     )
 
@@ -132,7 +132,7 @@ fun LiveSearchScreen(
                             ),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(48.dp)
+                                .height(56.dp)
                                 .testTag("input_departure_iata")
                         )
 
@@ -152,7 +152,7 @@ fun LiveSearchScreen(
                             ),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(48.dp)
+                                .height(56.dp)
                                 .testTag("input_arrival_iata")
                         )
                     }

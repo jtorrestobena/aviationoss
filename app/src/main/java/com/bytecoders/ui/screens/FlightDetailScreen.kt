@@ -56,6 +56,7 @@ fun FlightDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .systemBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {

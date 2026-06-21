@@ -14,7 +14,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.Alignment as AlignmentComp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import com.bytecoders.R
 import com.bytecoders.data.local.CachedFlightEntity
 import com.bytecoders.ui.FlightViewModel
@@ -52,118 +58,102 @@ fun FlightRadarApp(
         ?: cachedFlightsList.firstOrNull { it.isBookmarked }
         ?: cachedFlightsList.firstOrNull()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = UIConstants.NAVIGATION_TONAL_ELEVATION,
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .testTag("sleek_bottom_nav")
-                ) {
-                    NavigationBarItem(
-                        selected = activeTab == 0,
-                        onClick = { viewModel.currentTab.value = 0 },
-                        icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
-                        label = { Text(stringResource(R.string.nav_home), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            unselectedTextColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    )
-                    NavigationBarItem(
-                        selected = activeTab == 1,
-                        onClick = { viewModel.currentTab.value = 1 },
-                        icon = { Icon(Icons.Default.Explore, contentDescription = stringResource(R.string.nav_discover)) },
-                        label = { Text(stringResource(R.string.nav_discover), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            unselectedTextColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    )
-                    NavigationBarItem(
-                        selected = activeTab == 2,
-                        onClick = { viewModel.currentTab.value = 2 },
-                        icon = { Icon(Icons.Default.Star, contentDescription = stringResource(R.string.nav_watchlist)) },
-                        label = { Text(stringResource(R.string.nav_watchlist), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            unselectedTextColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    )
-                    NavigationBarItem(
-                        selected = activeTab == 3,
-                        onClick = { viewModel.currentTab.value = 3 },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings)) },
-                        label = { Text(stringResource(R.string.nav_settings), fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            unselectedTextColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    )
-                }
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                // Title Header with aviation emblem logo
-                SleekHeader(
-                    onProfileClick = { showProfileScreen = true }
-                )
+    val navItems = listOf(
+        Triple(0, Icons.Default.Home, R.string.nav_home),
+        Triple(1, Icons.Default.Explore, R.string.nav_discover),
+        Triple(2, Icons.Default.Star, R.string.nav_watchlist),
+        Triple(3, Icons.Default.Settings, R.string.nav_settings)
+    )
 
-                // Screen Selector Area
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    when (activeTab) {
-                        0 -> LiveSearchScreen(
-                            viewModel = viewModel,
-                            apiKeyConfigured = isApiKeyConfigured,
-                            onFlightClick = { selectedFlightForDetail = it },
-                            onSelectForTracking = { activeTrackingFlightState = it },
-                            activeTrackingFlight = activeTrackingFlight,
-                            shieldRemaining = shieldRemaining
-                        )
-                        1 -> CacheVaultScreen(
-                            viewModel = viewModel,
-                            onFlightClick = { selectedFlightForDetail = it },
-                            onSelectForTracking = { activeTrackingFlightState = it },
-                            activeTrackingFlight = activeTrackingFlight
-                        )
-                        2 -> WatchlistScreen(
-                            viewModel = viewModel,
-                            onFlightClick = { selectedFlightForDetail = it },
-                            onSelectForTracking = { activeTrackingFlightState = it },
-                            activeTrackingFlight = activeTrackingFlight
-                        )
-                        3 -> SettingsScreen(
-                            viewModel = viewModel
-                        )
-                    }
+    val suiteItemColors = NavigationSuiteDefaults.itemColors(
+        navigationBarItemColors = NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        ),
+        navigationRailItemColors = NavigationRailItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        )
+    )
+
+    NavigationSuiteScaffold(
+        navigationSuiteItems = {
+            navItems.forEach { (index, icon, labelRes) ->
+                item(
+                    selected = activeTab == index,
+                    onClick = { viewModel.currentTab.value = index },
+                    icon = { 
+                        Icon(
+                            imageVector = icon, 
+                            contentDescription = stringResource(labelRes),
+                            modifier = Modifier.size(24.dp)
+                        ) 
+                    },
+                    label = { 
+                        Text(
+                            text = stringResource(labelRes), 
+                            fontSize = 12.sp, 
+                            fontWeight = if (activeTab == index) FontWeight.Bold else FontWeight.Medium
+                        ) 
+                    },
+                    colors = suiteItemColors
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            // Title Header with aviation emblem logo
+            SleekHeader(
+                onProfileClick = { showProfileScreen = true }
+            )
+
+            // Screen Selector Area
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                when (activeTab) {
+                    0 -> LiveSearchScreen(
+                        viewModel = viewModel,
+                        apiKeyConfigured = isApiKeyConfigured,
+                        onFlightClick = { selectedFlightForDetail = it },
+                        onSelectForTracking = { activeTrackingFlightState = it },
+                        activeTrackingFlight = activeTrackingFlight,
+                        shieldRemaining = shieldRemaining
+                    )
+                    1 -> CacheVaultScreen(
+                        viewModel = viewModel,
+                        onFlightClick = { selectedFlightForDetail = it },
+                        onSelectForTracking = { activeTrackingFlightState = it },
+                        activeTrackingFlight = activeTrackingFlight
+                    )
+                    2 -> WatchlistScreen(
+                        viewModel = viewModel,
+                        onFlightClick = { selectedFlightForDetail = it },
+                        onSelectForTracking = { activeTrackingFlightState = it },
+                        activeTrackingFlight = activeTrackingFlight
+                    )
+                    3 -> SettingsScreen(
+                        viewModel = viewModel
+                    )
                 }
             }
         }
+    }
 
+    Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = showProfileScreen,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -202,4 +192,14 @@ fun FlightRadarApp(
             }
         }
     }
+}
+
+@Preview(name = "Phone Portrait", showSystemUi = true, device = Devices.PIXEL_4)
+@Preview(name = "Phone Landscape", showSystemUi = true, device = "spec:width=891dp,height=411dp,orientation=landscape,dpi=420")
+@Preview(name = "Tablet", showSystemUi = true, device = Devices.PIXEL_C)
+@Preview(name = "Large Font", showSystemUi = true, fontScale = 1.5f)
+@Composable
+fun FlightRadarAppPreview() {
+    // This is a placeholder for structural demonstration. 
+    // In a real scenario, you'd pass a mock or a controlled state ViewModel.
 }

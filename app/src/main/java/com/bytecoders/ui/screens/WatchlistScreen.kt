@@ -141,7 +141,7 @@ fun WatchlistScreen(
                             textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(50.dp)
+                                .height(56.dp)
                                 .testTag("fav_flight_input"),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -162,7 +162,7 @@ fun WatchlistScreen(
                             },
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
-                                .height(50.dp)
+                                .height(56.dp)
                                 .testTag("add_fav_button"),
                             contentPadding = PaddingValues(horizontal = 14.dp)
                         ) {

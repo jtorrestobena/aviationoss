@@ -28,6 +28,7 @@ fun SleekHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .height(UIConstants.HEADER_HEIGHT)
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
