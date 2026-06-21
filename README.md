@@ -1,6 +1,6 @@
-# ✈️ Aviationstack Flight Tracker
+# ✈️ Aviation OSS
 
-An offline-first, cached flight tracker and aviation data search tool powered by the **Aviationstack API** and Android Jetpack Compose. Designed with Material 3, custom mapping visualizations, and robust local database synchronization, it provides a seamless, lightning-fast exploration experience for airspace telemetry.
+An offline-first, cached flight tracker and aviation data search tool powered by the **Aviationstack API** and Android Jetpack Compose.
 
 ---
 

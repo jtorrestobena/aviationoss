@@ -12,25 +12,25 @@ The Aviationstack Flight Tracker is an Android client-side application built in 
 ## 📁 Key File Locations
 
 * **Core Views, App Shell, & MainActivity**:
-  `app/src/main/java/com/bytecoders/aviationoss/MainActivity.kt`
+  `app/src/main/java/com/bytecoders/MainActivity.kt`
   Contains the application's root scaffold, screen container tabs, `FlightRouteMap` (WebView custom Leaflet component), dialog popups, skeleton loaders, and interactive components.
 
 * **Business Logic & State Manager**:
-  `app/src/main/java/com/bytecoders/aviationoss/ui/FlightViewModel.kt`
+  `app/src/main/java/com/bytecoders/ui/FlightViewModel.kt`
   Manages search queries, free-credit counters, local persistent settings (e.g. customized API keys), selected tracking states, and upcoming flight lookups.
 
 * **Repository Data Layer**:
-  `app/src/main/java/com/bytecoders/aviationoss/data/repository/FlightRepository.kt`
+  `app/src/main/java/com/bytecoders/data/repository/FlightRepository.kt`
   Handles network-to-local synchronization. Maps raw network payloads (`FlightDataDto`) into clean cached entities (`CachedFlightEntity`).
 
 * **API Endpoints Definitions**:
-  `app/src/main/java/com/bytecoders/aviationoss/data/remote/AviationstackApiService.kt`
+  `app/src/main/java/com/bytecoders/data/remote/AviationstackApiService.kt`
   Retrofit setup for querying the Aviationstack endpoints.
 
 * **Local Android SQLite Database**:
-  * Entity definition: `app/src/main/java/com/bytecoders/aviationoss/data/local/CachedFlightEntity.kt` (Currently Version **2**, which supports `liveLatitude` and `liveLongitude`).
-  * Database entry: `app/src/main/java/com/bytecoders/aviationoss/data/local/AppDatabase.kt`
-  * Dao queries: `app/src/main/java/com/bytecoders/aviationoss/data/local/FlightDao.kt`
+  * Entity definition: `app/src/main/java/com/bytecoders/data/local/CachedFlightEntity.kt` (Currently Version **2**, which supports `liveLatitude` and `liveLongitude`).
+  * Database entry: `app/src/main/java/com/bytecoders/data/local/AppDatabase.kt`
+  * Dao queries: `app/src/main/java/com/bytecoders/data/local/FlightDao.kt`
 
 ---
 
